@@ -1,0 +1,25 @@
+from discord.ext import commands
+from discord.ext.commands import Cog
+
+from puyorankedbot import config
+from puyorankedbot.logger import log_info
+
+config.create_config()
+
+token = config.get_config("token")
+bot = commands.Bot(command_prefix=',')
+
+extensions = ["cogs.registration"]
+
+if __name__ == "__main__":
+	for extension in extensions:
+		bot.load_extension(extension)
+
+
+@bot.event
+async def on_ready():
+	log_info("Logged in as {}#{}".format(bot.user.name, bot.user.discriminator))
+	print("Logged in as {}#{}".format(bot.user.name, bot.user.discriminator))
+
+
+bot.run(token, bot=True, reconnect=True)

@@ -1,0 +1,5 @@
+/venv
+/puyorankedbot/*.json
+/puyorankedbot/players
+/puyorankedbot/matches
+/puyorankedbot/discord.log
