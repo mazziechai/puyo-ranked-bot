@@ -28,7 +28,6 @@ class Registration(commands.Cog):
 		platforms = ["switch", "pc", "ps4"]
 
 		if not platform.casefold() in platforms:
-			logger.log_error("")
 			raise commands.UserInputError("You need to provide a valid platform."
 										  "The options are:\nSwitch, PC, PS4.")
 
@@ -55,13 +54,7 @@ class Registration(commands.Cog):
 
 	@register.error
 	async def register_error(self, ctx, error):
-		if isinstance(error, commands.UserInputError):
-			await ctx.send(error)
-
-		if isinstance(error, commands.UserInputError):
-			await ctx.send(error)
-
-		elif isinstance(error, NotImplementedError):
+		if isinstance(error, NotImplementedError):
 			await ctx.send("You're attempting to access a command that isn't ready yet.")
 
 		elif isinstance(error, commands.BadArgument):
@@ -70,6 +63,27 @@ class Registration(commands.Cog):
 		else:
 			await ctx.send(error)
 			traceback.print_exc()
+
+	@commands.command(name="unregister")
+	async def unregister(self, ctx, platform):
+		platforms = ["switch", "pc", "ps4"]
+
+		if not platform.casefold() in platforms:
+			raise commands.UserInputError("You need to provide a valid platform."
+										  "The options are:\nSwitch, PC, PS4.")
+
+		if os.path.exists("players/" + str(ctx.message.author.id)):
+			logger.log_info("Found player file, modifying it")
+			player_file = get_player(ctx.message.author.id)
+			player_file.platform.remove(platform.casefold())
+			update_player(player_file)
+			spreadsheets.update(player_file)
+			if platform.casefold() == "switch":
+				await ctx.send("Unregistered for {0}.".format(platform.capitalize()))
+			else:
+				await ctx.send("Unregistered for {0}.".format(platform.upper()))
+		else:
+			await ctx.send("It doesn't look like you've registered before!")
 
 
 def setup(bot):
