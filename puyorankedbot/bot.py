@@ -10,6 +10,7 @@ bot = commands.Bot(command_prefix=',')
 
 extensions = ["cogs.registration", "cogs.information", "cogs.matches"]
 
+# Here, we're loading all of the extensions listed above.
 if __name__ == "__main__":
 	for extension in extensions:
 		bot.load_extension(extension)
@@ -21,4 +22,5 @@ async def on_ready():
 	print("Logged in as {}#{}".format(bot.user.name, bot.user.discriminator))
 
 
+# Logging in.
 bot.run(token, bot=True, reconnect=True)

@@ -24,7 +24,7 @@ def set_config(key, value):
 	"""
 	Sets a key in the configuration file to the value.
 	:param key: A valid key in the config.json.
-	:param value: The value of the key.
+	:param value: The value that is going to be set.
 	:return: None
 	"""
 	if os.path.exists("config.json"):

@@ -1,5 +1,3 @@
-from datetime import datetime
-
 import gspread
 from puyorankedbot import config
 from puyorankedbot.core.match import Match
@@ -17,7 +15,7 @@ class NotPlayerOrMatchError(Exception):
 
 def new(obj):
 	"""
-	Writes a new Player or Match to the appropriate spreadsheet given a Player or Match.
+	Writes a new Player or Match to the appropriate spreadsheet.
 	:param obj: A Player or Match
 	:return: None
 	"""
@@ -36,6 +34,11 @@ def new(obj):
 
 
 def update(obj):
+	"""
+	Updates a Player or Match in the appropriate spreadsheet.
+	:param obj: A Player or Match
+	:return: None
+	"""
 	if isinstance(obj, Player):
 		player = obj
 		# this is inefficient and bad but i can't figure out a way to do it otherwise (batch_update doesn't seem to work)
@@ -52,7 +55,12 @@ def update(obj):
 		raise NotPlayerOrMatchError("obj was not a Player or Match.")
 
 
-def find_player_id(search_term):
+def find_player_id(search_term: str):
+	"""
+	Gets the User ID of the first player it finds given any searchable term.
+	:param search_term: Anything searchable
+	:return: User ID of the player.
+	"""
 	try:
 		cell = player_sheet.find(search_term)
 	except gspread.exceptions.CellNotFound:

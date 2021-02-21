@@ -17,14 +17,15 @@ class Registration(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
 
-	"""
-	Registration command.
-	Takes a name and platform, and then creates a Player if there isn't already a registered Player
-	that corresponds with the invoker. If there is, it will update the player with new information.
-	"""
-
 	@commands.command(name="register")
-	async def register(self, ctx, platform, *, display_name):
+	async def register(self, ctx, platform: str, *, display_name: str):
+		"""
+		Registers a new Player into the system.
+		:param ctx: Context, comes with every command
+		:param platform: "switch", "pc", or "ps4".
+		:param display_name: The name the user wishes to sign up with.
+		:return: None
+		"""
 		platforms = ["switch", "pc", "ps4"]
 
 		if not platform.casefold() in platforms:
@@ -66,6 +67,12 @@ class Registration(commands.Cog):
 
 	@commands.command(name="unregister")
 	async def unregister(self, ctx, platform):
+		"""
+		Unregisters a player by removing the requested platform from their file.
+		:param ctx: Context, comes with every command
+		:param platform: "switch", "pc", "ps4".
+		:return: None
+		"""
 		platforms = ["switch", "pc", "ps4"]
 
 		if not platform.casefold() in platforms:

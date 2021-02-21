@@ -1,14 +1,15 @@
 import os
 import pickle
-import traceback
 from datetime import datetime
 
-import discord
 
 from puyorankedbot.core.glicko2.glicko2 import Rating
 
 
 class Player:
+	"""
+	Class for storing player information.
+	"""
 	def __init__(self, user, display_name, platform):
 		self.id = user.id
 		self.name = user.name
@@ -23,12 +24,29 @@ class Player:
 		return "{self.name}#{self.discriminator}".format(self=self)
 
 
-def get_player(id):
-	with open(os.path.join(os.path.dirname(__file__), "../players/{}".format(str(id))), "rb") as file:
-		player_file = pickle.load(file)
-		return player_file
+class PlayerNotFoundError(Exception):
+	pass
 
 
-def update_player(player):
+def get_player(id) -> Player:
+	"""
+	Gets the player from a file, unpickles it, and returns a Player.
+	:param id: A valid Discord user ID.
+	:return:
+	"""
+	try:
+		with open(os.path.join(os.path.dirname(__file__), "../players/{}".format(str(id))), "rb") as file:
+			player_file = pickle.load(file)
+			return player_file
+	except FileNotFoundError:
+		raise PlayerNotFoundError("Could not get player")
+
+
+def update_player(player: Player):
+	"""
+	A function to pickle a Player and write the pickled Player to the file system.
+	:param player: Player
+	:return: None
+	"""
 	with open(os.path.join(os.path.dirname(__file__), "../players/{}".format(str(player.id))), "wb") as file:
 		pickle.dump(player, file)

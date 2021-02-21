@@ -23,6 +23,14 @@ class Matches(commands.Cog):
 
 	@match.command(name="report")
 	async def report(self, ctx, user: discord.User, score1: int, score2: int):
+		"""
+		Reports a match to the system, calculates the ratings, and sends them as a message.
+		:param ctx: Context, comes with every command
+		:param user: A user, which could be a mention, an ID, or anything else Discord can translate into a user.
+		:param score1: int
+		:param score2: int
+		:return:
+		"""
 		player1 = get_player(ctx.author.id)
 		player2 = get_player(user.id)
 
@@ -30,7 +38,6 @@ class Matches(commands.Cog):
 		spreadsheets.new(match)
 		await ctx.send("Match reported! New ratings: {0}, {1}".format(round(player1.rating.mu),
 																	  round(player2.rating.mu)))
-
 
 
 def setup(bot):
