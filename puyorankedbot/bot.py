@@ -1,5 +1,4 @@
 from discord.ext import commands
-from discord.ext.commands import Cog
 
 from puyorankedbot import config
 from puyorankedbot.logger import log_info
@@ -9,7 +8,7 @@ config.create_config()
 token = config.get_config("token")
 bot = commands.Bot(command_prefix=',')
 
-extensions = ["cogs.registration"]
+extensions = ["cogs.registration", "cogs.information"]
 
 if __name__ == "__main__":
 	for extension in extensions:
