@@ -8,7 +8,7 @@ config.create_config()
 token = config.get_config("token")
 bot = commands.Bot(command_prefix=',')
 
-extensions = ["cogs.registration", "cogs.information"]
+extensions = ["cogs.registration", "cogs.information", "cogs.matches"]
 
 if __name__ == "__main__":
 	for extension in extensions:

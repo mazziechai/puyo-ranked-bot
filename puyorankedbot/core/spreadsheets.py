@@ -28,8 +28,9 @@ def new(obj):
 								 str(player.rating.mu), str(player.rating.phi), str(player.rating.sigma)])
 	elif isinstance(obj, Match):
 		match = obj
-		match_sheet.append_row([match.id, match.time_of_match, match.player1.name, match.player1_score,
-								match.player2_score, match.player2.name, match.player1.mu, match.player2.mu])
+		match_sheet.append_row([match.id, str(match.time_of_match), match.player1.name, match.player1_score,
+								match.player2_score, match.player2.name, match.player1.rating.mu,
+								match.player2.rating.mu])
 	else:
 		raise NotPlayerOrMatchError("obj was not a Player or Match.")
 

@@ -28,9 +28,10 @@ def set_config(key, value):
 	:return: None
 	"""
 	if os.path.exists("config.json"):
-		with open("config.json", "rw") as file_obj:
+		with open("config.json", "r") as file_obj:
 			json_obj = json.load(file_obj)
-			json_obj[key] = value
+		json_obj[key] = value
+		with open("config.json", "w") as file_obj:
 			json.dump(json_obj, file_obj)
 	else:
 		raise ConfigNotFoundException("config.json is missing")
