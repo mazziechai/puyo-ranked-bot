@@ -4,9 +4,9 @@ import traceback
 from discord.ext import commands
 from discord.ext.commands import Cog
 
-from puyorankedbot import logger
-from puyorankedbot.core import spreadsheets
-from puyorankedbot.core.player import get_player, Player, update_player
+import logger
+from core import spreadsheets
+from core.player import get_player, Player, update_player
 
 
 class Registration(commands.Cog):

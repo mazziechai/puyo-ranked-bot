@@ -1,7 +1,7 @@
 import gspread
-from puyorankedbot import config
-from puyorankedbot.core.match import Match
-from puyorankedbot.core.player import Player
+import config
+from .match import Match
+from .player import Player
 
 google_sheets = gspread.service_account(config.get_config("service_account_file"))
 spreadsheet = google_sheets.open_by_key(config.get_config("spreadsheet_id"))

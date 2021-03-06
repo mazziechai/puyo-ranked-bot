@@ -1,8 +1,8 @@
 import discord
 from discord.ext import commands
 
-from puyorankedbot.core import spreadsheets
-from puyorankedbot.core.player import get_player
+from core import spreadsheets
+from core.player import get_player
 
 
 class Information(commands.Cog):

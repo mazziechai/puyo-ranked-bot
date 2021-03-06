@@ -12,8 +12,8 @@ def get_config(key):
 	:param key: A valid key in the config.json.
 	:return value: The value of the key.
 	"""
-	if os.path.exists("config.json"):
-		with open("config.json", "r") as file_obj:
+	if os.path.exists("../config.json"):
+		with open("../config.json", "r") as file_obj:
 			json_obj = json.load(file_obj)
 			return json_obj[key]
 	else:
@@ -27,11 +27,11 @@ def set_config(key, value):
 	:param value: The value that is going to be set.
 	:return: None
 	"""
-	if os.path.exists("config.json"):
-		with open("config.json", "r") as file_obj:
+	if os.path.exists("../config.json"):
+		with open("../config.json", "r") as file_obj:
 			json_obj = json.load(file_obj)
 		json_obj[key] = value
-		with open("config.json", "w") as file_obj:
+		with open("../config.json", "w") as file_obj:
 			json.dump(json_obj, file_obj)
 	else:
 		raise ConfigNotFoundException("config.json is missing")
@@ -43,10 +43,10 @@ def create_config():
 	if the configuration file does not exist.
 	:return: None
 	"""
-	if os.path.exists("config.json"):
+	if os.path.exists("../config.json"):
 		return
 	else:
-		with open("config.json", "w") as file_obj:
+		with open("../config.json", "w") as file_obj:
 			token = input("Please enter the token: ")
 			spreadsheet_id = input("Please enter the Google spreadsheet ID: ")
 			service_account_file = input("Please enter the Google service account file: ")

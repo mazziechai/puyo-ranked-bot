@@ -2,9 +2,9 @@ import os
 import pickle
 from datetime import datetime
 
-from puyorankedbot import config
-from puyorankedbot.core.glicko2.glicko2 import Glicko2
-from puyorankedbot.core.player import update_player
+import config
+from .glicko2.glicko2 import Glicko2
+from .player import update_player
 
 
 class ScoresEqualError(Exception):

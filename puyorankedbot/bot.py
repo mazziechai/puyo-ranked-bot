@@ -1,7 +1,7 @@
 from discord.ext import commands
 
-from puyorankedbot import config
-from puyorankedbot.logger import log_info
+import config
+from logger import log_info
 
 config.create_config()
 

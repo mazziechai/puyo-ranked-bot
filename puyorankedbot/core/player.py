@@ -3,7 +3,7 @@ import pickle
 from datetime import datetime
 
 
-from puyorankedbot.core.glicko2.glicko2 import Rating
+from .glicko2.glicko2 import Rating
 
 
 class Player:
