@@ -4,3 +4,4 @@
 /puyorankedbot/matches
 /puyorankedbot/*.json
 /discord.log
+/**/__pycache__/

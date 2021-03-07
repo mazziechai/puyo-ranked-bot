@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 
-from core import spreadsheets
+from core import spreadsheets, utils
 from core.match import Match
 from core.player import get_player
 
@@ -14,15 +14,33 @@ class Matches(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
 
-	@commands.group(name="match")
+	@commands.group(
+		name="match",
+		help="Match related commands."
+	)
 	async def match(self, ctx):
 		if ctx.invoked_subcommand is None:
-			await ctx.send("**Help for Match command:**\n"
-						   "`,match report` Reports a match between the author and the tagged user with a score.\n"
-						   "Example: `,match report @Juice 17 20`\n")
+			await ctx.send("Usage: ,match report <opponent> <your score> <opponent score>")
 
-	@match.command(name="report")
-	async def report(self, ctx, user: discord.User, score1: int, score2: int):
+	@match.error
+	async def match_OnError(cog, ctx, error):
+		await utils.handle_command_error(ctx, error)
+
+	@classmethod
+	def add_report_field(cls, embed, old_mu, player, score):
+		d = player.rating.mu - old_mu
+		embed.add_field(
+			name = player.display_name,
+			value = f"**{score}**\n{int(player.rating.mu)} \u00B1 {int(player.rating.phi)}\n" +
+				('+' if d >= 0 else '\u2013') +	f" {int(abs(d))}"
+		)
+
+	@match.command(
+		name="report",
+		usage="<opponent> <your score> <opponent score>",
+		help="Report a match to the system."
+	)
+	async def match_report(self, ctx, user: discord.User, score1s, score2s):
 		"""
 		Reports a match to the system, calculates the ratings, and sends them as a message.
 		:param ctx: Context, comes with every command
@@ -33,11 +51,36 @@ class Matches(commands.Cog):
 		"""
 		player1 = get_player(ctx.author.id)
 		player2 = get_player(user.id)
+		old_mu1 = player1.rating.mu
+		old_mu2 = player2.rating.mu
+		try:
+			score1 = utils.parse_integer(score1s, True)
+			score2 = utils.parse_integer(score2s, True)
+		except Exception as e:
+			await ctx.send(str(e))
+			return
 
 		match = Match(player1, player2, score1, score2)
 		spreadsheets.new(match)
-		await ctx.send("Match reported! New ratings: {0}, {1}".format(round(player1.rating.mu),
-																	  round(player2.rating.mu)))
+
+		embed = discord.Embed(
+			type = "rich",
+			title = "Match recorded",
+			color = 0xFFBE37
+		)
+		self.add_report_field(embed, old_mu1, player1, score1)
+		self.add_report_field(embed, old_mu2, player2, score2)
+		await ctx.send(embed=embed)
+
+	@match_report.error
+	async def match_report_OnError(cog, ctx, error):
+		if (isinstance(error, commands.MissingRequiredArgument)):
+			await ctx.send("Usage: ,match report <opponent> <your score> <opponent score>")
+			return
+		if (isinstance(error, commands.errors.UserNotFound)):
+			await ctx.send(f"Failed to find Discord user based on input `{error.argument}`.");
+			return
+		await utils.handle_command_error(ctx, error)
 
 
 def setup(bot):

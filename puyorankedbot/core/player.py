@@ -17,7 +17,7 @@ class Player:
 		self.display_name = display_name
 		self.platform = [platform]
 		self.rating = Rating()
-		self.time_of_registration = datetime.now()
+		self.time_of_registration = datetime.utcnow()
 		self.match_count = 0
 
 	def get_username(self):
