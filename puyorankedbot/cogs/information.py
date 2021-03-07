@@ -1,8 +1,8 @@
 import discord
 from discord.ext import commands
 
-from core import spreadsheets
-from core.player import get_player
+from core import spreadsheets, utils
+from core.player import get_player, PlayerNotFoundError
 
 
 class Information(commands.Cog):
@@ -13,19 +13,55 @@ class Information(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
 
+	@classmethod
+	async def send_player_info(cls, ctx, player, user=None):
+		"""
+		Constructs an embed containing the player info and then sends it as response
+		to the info command.
+		:param ctx: Context to send to.
+		:param player: The player object.
+		:param user: The Discord user object.
+		"""
+		embed = discord.Embed(
+			type = "rich",
+			title = "_Puyo training grounds_ player info",
+			description = f"{player.get_username()}\nID {player.id}",
+			colour = 0x22FF7D # TODO Maybe change this color depending on the rating.
+		)
+		embed.set_author(name=player.display_name)
+		if user != None:
+			embed.set_thumbnail(url=str(user.avatar_url))
+		embed.set_footer(text="Registration date")
+		embed.timestamp = player.time_of_registration
+		embed.add_field(
+			name="Platforms",
+			value=", ".join([utils.format_platform_name(platform) for platform in player.platform])
+		)
+		embed.add_field(name="Rating", value=f"{int(player.rating.mu)} \u00B1 {int(player.rating.phi)}")
+		embed.add_field(name="Matches", value=player.match_count)
+		await ctx.send(embed=embed)
+
 	# Groupings, these don't do anything on their own.
-	@commands.group(name="info")
+	@commands.group(name="info", help="Retrieve information about players and matches.")
 	async def info(self, ctx):
 		if ctx.invoked_subcommand is None:
-			await ctx.send("You must specify a `player` or `match` to receive information about.")
+			await ctx.send("Usage: ,info (player | match) ...")
 
-	@info.group(name="player")
-	async def player(self, ctx):
+	@info.error
+	async def info_OnError(cog, ctx, error):
+		await utils.handle_command_error(ctx, error)
+
+	@info.group(name="player", help="Retrieve information about a Puyo player.")
+	async def info_player(self, ctx):
 		if ctx.invoked_subcommand is None:
-			await ctx.send("You must specify either `user` or `name` to tell me how to find the player.")
+			await ctx.send("Usage: ,info player (user | name) <user or name>")
 
-	@player.command(name="user")
-	async def id(self, ctx, user: discord.User):
+	@info_player.command(
+		name="user",
+		usage="<mention or ID>",
+		help="Retrieve information about a Puyo player using their Discord user."
+	)
+	async def info_player_user(self, ctx, user: discord.User):
 		"""
 		Gets a Player's information from a discord.User. This is done by getting the ID of the User and passing it to
 		get_player().
@@ -35,23 +71,27 @@ class Information(commands.Cog):
 
 		try:
 			player = get_player(user.id)
-		except FileNotFoundError:
-			await ctx.send("Could not find that player!")
+		except PlayerNotFoundError:
+			await ctx.send(f"The user \"{user.display_name}\" isn't registered.")
 			return
-		await ctx.send("Player information:\n"
-					   "```Registration date: {player.time_of_registration}\n"
-					   "ID: {player.id}\n"
-					   "Username: {}\n"
-					   "Display Name: {player.display_name}\n"
-					   "Platform(s): {player.platform}\n"
-					   "Rating: {player.rating.mu}\n"
-					   "Rating Deviation: {player.rating.phi}\n"
-					   "Match count: {player.match_count}```"
-					   .format(player.get_username(), player=player)
-					   )
+		await self.send_player_info(ctx, player, user)
 
-	@player.command(name="name")
-	async def name(self, ctx, *, name):
+	@info_player_user.error
+	async def info_player_user_OnError(cog, ctx, error):
+		if (isinstance(error, commands.MissingRequiredArgument)):
+			await ctx.send("Usage: ,info player user <mention or ID>")
+			return
+		if (isinstance(error, commands.errors.UserNotFound)):
+			await ctx.send(f"Failed to find Discord user based on input `{error.argument}`.");
+			return
+		await utils.handle_command_error(ctx, error)
+
+	@info_player.command(
+		name="name",
+		usage="<display name>",
+		help="Retrieve information about a Puyo player based on their display name."
+	)
+	async def info_player_name(self, ctx, *, name):
 		"""
 		Gets a Player's information from a string. This is done by passing the name to spreadsheets.find_player_id(name)
 		:param ctx: Context, comes with every command
@@ -61,20 +101,22 @@ class Information(commands.Cog):
 		player_id = spreadsheets.find_player_id(name)
 		if player_id is not None:
 			player = get_player(player_id)
-			await ctx.send("Player information:\n"
-						   "```Registration date: {player.time_of_registration}\n"
-						   "ID: {player.id}\n"
-						   "Username: {}\n"
-						   "Display Name: {player.display_name}\n"
-						   "Platform(s): {player.platform}\n"
-						   "Rating: {player.rating.mu}\n"
-						   "Rating Deviation: {player.rating.phi}\n"
-						   "Match count: {player.match_count}```"
-						   .format(player.get_username(), player=player)
-						   )
+			user = None
+			try:
+				user = await self.bot.fetch_user(player_id)
+			except UserNotFound:
+				pass
+			await self.send_player_info(ctx, player, user)
 		else:
-			await ctx.send("Could not find that player!")
+			await ctx.send(f"There is no registered player with the display name \"{name}\".")
 
+	@info_player_name.error
+	async def info_player_name_OnError(cog, ctx, error):
+		if (isinstance(error, commands.MissingRequiredArgument)):
+			await ctx.send("Usage: ,info player name <display name>")
+			return
+		await utils.handle_command_error(ctx, error)
+	
 
 def setup(bot):
 	bot.add_cog(Information(bot))

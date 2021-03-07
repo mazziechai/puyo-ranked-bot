@@ -2,6 +2,7 @@ from discord.ext import commands
 
 import config
 from logger import log_info
+from core import utils
 
 config.create_config()
 
@@ -19,7 +20,6 @@ if __name__ == "__main__":
 @bot.event
 async def on_ready():
 	log_info("Logged in as {}#{}".format(bot.user.name, bot.user.discriminator))
-	print("Logged in as {}#{}".format(bot.user.name, bot.user.discriminator))
 
 
 # Logging in.
