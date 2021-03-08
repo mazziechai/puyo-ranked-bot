@@ -2,7 +2,6 @@ import os
 import traceback
 
 from discord.ext import commands
-from discord.ext.commands import Cog
 
 import logger
 from core import spreadsheets, utils
@@ -32,8 +31,7 @@ class Registration(commands.Cog):
 		"""
 		if not platform.casefold() in utils.platform_name_mapping:
 			await ctx.send("You need to provide a valid platform that is one of the following: "
-				+ ", ".join(utils.platform_names)
-			)
+						   + ", ".join(utils.platform_names))
 			return
 
 		logger.log_debug("Received valid registration command!")
@@ -58,8 +56,8 @@ class Registration(commands.Cog):
 				await ctx.send("Signed up for {0}.".format(platform.upper()))
 
 	@register.error
-	async def register_OnError(self, ctx, error):
-		if (isinstance(error, commands.MissingRequiredArgument)):
+	async def register_on_error(self, ctx, error):
+		if isinstance(error, commands.MissingRequiredArgument):
 			await ctx.send("Usage: ,register <platforms> <display name>")
 		elif isinstance(error, NotImplementedError):
 			await ctx.send("You're attempting to access a command that isn't ready yet.")
@@ -83,8 +81,7 @@ class Registration(commands.Cog):
 		"""
 		if not platform.casefold() in utils.platform_name_mapping:
 			await ctx.send("You need to provide a valid platform that is one of the following: "
-				+ ", ".join(utils.platform_names)
-			)
+						   + ", ".join(utils.platform_names))
 			return
 
 		if os.path.exists("players/" + str(ctx.message.author.id)):
@@ -101,11 +98,12 @@ class Registration(commands.Cog):
 			await ctx.send("It doesn't look like you've registered before!")
 
 	@unregister.error
-	async def unregister_OnError(cog, ctx, error):
-		if (isinstance(error, commands.MissingRequiredArgument)):
+	async def unregister_OnError(self, ctx, error):
+		if isinstance(error, commands.MissingRequiredArgument):
 			await ctx.send("Usage: ,unregister <platforms>")
 			return
 		await utils.handle_command_error(ctx, error)
+
 
 def setup(bot):
 	bot.add_cog(Registration(bot))

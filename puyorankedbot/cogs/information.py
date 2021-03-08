@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from discord.ext.commands import UserNotFound
 
 from core import spreadsheets, utils
 from core.player import get_player, PlayerNotFoundError
@@ -23,13 +24,13 @@ class Information(commands.Cog):
 		:param user: The Discord user object.
 		"""
 		embed = discord.Embed(
-			type = "rich",
-			title = "_Puyo training grounds_ player info",
-			description = f"{player.get_username()}\nID {player.id}",
-			colour = 0x22FF7D # TODO Maybe change this color depending on the rating.
+			type="rich",
+			title="_Puyo training grounds_ player info",
+			description=f"{player.get_username()}\nID {player.id}",
+			colour=0x22FF7D  # TODO Maybe change this color depending on the rating.
 		)
 		embed.set_author(name=player.display_name)
-		if user != None:
+		if user is not None:
 			embed.set_thumbnail(url=str(user.avatar_url))
 		embed.set_footer(text="Registration date")
 		embed.timestamp = player.time_of_registration
@@ -48,7 +49,7 @@ class Information(commands.Cog):
 			await ctx.send("Usage: ,info (player | match) ...")
 
 	@info.error
-	async def info_OnError(cog, ctx, error):
+	async def info_on_error(self, ctx, error):
 		await utils.handle_command_error(ctx, error)
 
 	@info.group(name="player", help="Retrieve information about a Puyo player.")
@@ -77,12 +78,12 @@ class Information(commands.Cog):
 		await self.send_player_info(ctx, player, user)
 
 	@info_player_user.error
-	async def info_player_user_OnError(cog, ctx, error):
-		if (isinstance(error, commands.MissingRequiredArgument)):
+	async def info_player_user_on_error(self, ctx, error):
+		if isinstance(error, commands.MissingRequiredArgument):
 			await ctx.send("Usage: ,info player user <mention or ID>")
 			return
-		if (isinstance(error, commands.errors.UserNotFound)):
-			await ctx.send(f"Failed to find Discord user based on input `{error.argument}`.");
+		if isinstance(error, commands.errors.UserNotFound):
+			await ctx.send(f"Failed to find Discord user based on input `{error.argument}`.")
 			return
 		await utils.handle_command_error(ctx, error)
 
@@ -111,12 +112,12 @@ class Information(commands.Cog):
 			await ctx.send(f"There is no registered player with the display name \"{name}\".")
 
 	@info_player_name.error
-	async def info_player_name_OnError(cog, ctx, error):
-		if (isinstance(error, commands.MissingRequiredArgument)):
+	async def info_player_name_on_error(self, ctx, error):
+		if isinstance(error, commands.MissingRequiredArgument):
 			await ctx.send("Usage: ,info player name <display name>")
 			return
 		await utils.handle_command_error(ctx, error)
-	
+
 
 def setup(bot):
 	bot.add_cog(Information(bot))

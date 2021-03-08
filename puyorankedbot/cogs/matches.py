@@ -23,16 +23,16 @@ class Matches(commands.Cog):
 			await ctx.send("Usage: ,match report <opponent> <your score> <opponent score>")
 
 	@match.error
-	async def match_OnError(cog, ctx, error):
+	async def match_on_error(self, ctx, error):
 		await utils.handle_command_error(ctx, error)
 
 	@classmethod
 	def add_report_field(cls, embed, old_mu, player, score):
 		d = player.rating.mu - old_mu
 		embed.add_field(
-			name = player.display_name,
-			value = f"**{score}**\n{int(player.rating.mu)} \u00B1 {int(player.rating.phi)}\n" +
-				('+' if d >= 0 else '\u2013') +	f" {int(abs(d))}"
+			name=player.display_name,
+			value=f"**{score}**\n{int(player.rating.mu)} \u00B1 {int(player.rating.phi)}\n" +
+				  ('+' if d >= 0 else '\u2013') + f" {int(abs(d))}"
 		)
 
 	@match.command(
@@ -45,8 +45,8 @@ class Matches(commands.Cog):
 		Reports a match to the system, calculates the ratings, and sends them as a message.
 		:param ctx: Context, comes with every command
 		:param user: A user, which could be a mention, an ID, or anything else Discord can translate into a user.
-		:param score1: int
-		:param score2: int
+		:param score1s: int
+		:param score2s: int
 		:return:
 		"""
 		player1 = get_player(ctx.author.id)
@@ -64,21 +64,21 @@ class Matches(commands.Cog):
 		spreadsheets.new(match)
 
 		embed = discord.Embed(
-			type = "rich",
-			title = "Match recorded",
-			color = 0xFFBE37
+			type="rich",
+			title="Match recorded",
+			color=0xFFBE37
 		)
 		self.add_report_field(embed, old_mu1, player1, score1)
 		self.add_report_field(embed, old_mu2, player2, score2)
 		await ctx.send(embed=embed)
 
 	@match_report.error
-	async def match_report_OnError(cog, ctx, error):
-		if (isinstance(error, commands.MissingRequiredArgument)):
+	async def match_report_on_error(self, ctx, error):
+		if isinstance(error, commands.MissingRequiredArgument):
 			await ctx.send("Usage: ,match report <opponent> <your score> <opponent score>")
 			return
-		if (isinstance(error, commands.errors.UserNotFound)):
-			await ctx.send(f"Failed to find Discord user based on input `{error.argument}`.");
+		if isinstance(error, commands.errors.UserNotFound):
+			await ctx.send(f"Failed to find Discord user based on input `{error.argument}`.")
 			return
 		await utils.handle_command_error(ctx, error)
 
