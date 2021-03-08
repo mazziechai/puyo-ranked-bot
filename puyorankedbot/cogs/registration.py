@@ -93,8 +93,18 @@ class Registration(commands.Cog):
 			if platform in platforms:
 				platforms.remove(platform)
 				database.execute(
-					"UPDATE players SET platforms = ? WHERE id = ?",
-					(" ".join(platforms), ctx.author.id)
+					"""
+					UPDATE players SET
+						platforms = "",
+						display_name = NULL,
+						username_pc = NULL,
+						username_switch = NULL,
+						username_ps4 = NULL
+					WHERE id = :id
+					"""
+					if len(platforms) == 0 else
+					"UPDATE players SET platforms = :platforms WHERE id = :id",
+					{"platforms": " ".join(platforms), "id": ctx.author.id}
 				)
 				database.commit()
 				await ctx.send(

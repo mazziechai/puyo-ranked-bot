@@ -82,7 +82,8 @@ class Information(commands.Cog):
 	)
 	async def info_player_user(self, ctx, user: discord.User):
 		"""
-		Gets a Player's information from a discord.User. This is done by getting the ID of the User and passing it to
+		Gets a Player's information from a discord.User. This is done by getting
+		the ID of the User and passing it to
 		get_player().
 		:param ctx: Context, comes with every command
 		:param user: A user, which could be a mention, an ID, or anything else Discord can translate into a user.
@@ -93,7 +94,7 @@ class Information(commands.Cog):
 			(user.id,)
 		).fetchone()
 		if player == None:
-			await ctx.send(f"The user \"{user.display_name}\" isn't registered.")
+			await ctx.send(f"The user \"{utils.escape_markdown(user.display_name)}\" isn't registered.")
 			return
 		await self.send_player_info(ctx, player, user)
 
@@ -112,19 +113,22 @@ class Information(commands.Cog):
 		usage="<display name>",
 		help="Retrieve information about a Puyo player based on their display name."
 	)
-	async def info_player_name(self, ctx, *, name):
+	async def info_player_name(self, ctx, *name):
 		"""
 		Gets a Player's information from a string. This is done by passing the name to spreadsheets.find_player_id(name)
 		:param ctx: Context, comes with every command
 		:param name: String
 		"""
-
+		name = " ".join(name).strip()
 		player = database.execute(
 			"SELECT * FROM players WHERE display_name=? AND platforms <> ''",
 			(name,)
 		).fetchone()
 		if player == None:
-			await ctx.send(f"There is no registered player with the display name \"{name}\".")
+			await ctx.send(
+				"There is no registered player with the display name "
+				f"\"{utils.escape_markdown(name)}\"."
+			)
 			return
 		user = None
 		try:
