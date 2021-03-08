@@ -1,7 +1,5 @@
 /venv
-/*.json
-/puyorankedbot/players
-/puyorankedbot/matches
-/puyorankedbot/*.json
+/data.db3
 /discord.log
 /**/__pycache__/
+/config.json
