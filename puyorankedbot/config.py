@@ -47,13 +47,11 @@ def create_config():
 		return
 	else:
 		with open("../config.json", "w") as file_obj:
-			token = input("Please enter the token: ")
-			spreadsheet_id = input("Please enter the Google spreadsheet ID: ")
-			service_account_file = input("Please enter the Google service account file: ")
+			print("Configuration file not found, supply the following:")
+			token = input("Bot token: ")
+			bot_prefix = input("Bot prefix: ")
 			data = {
 				"token": token,
-				"spreadsheet_id": spreadsheet_id,
-				"service_account_file": service_account_file,
-				"match_count": 0
+				"bot_prefix": bot_prefix
 			}
 			json.dump(data, file_obj)

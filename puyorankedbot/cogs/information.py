@@ -1,8 +1,8 @@
 import discord
 from discord.ext import commands
 
-from core import spreadsheets, utils
-from core.player import get_player, PlayerNotFoundError
+from core import utils
+from core.database import database
 
 
 class Information(commands.Cog):
@@ -19,42 +19,62 @@ class Information(commands.Cog):
 		Constructs an embed containing the player info and then sends it as response
 		to the info command.
 		:param ctx: Context to send to.
-		:param player: The player object.
+		:param player: The player database row object.
 		:param user: The Discord user object.
 		"""
+
 		embed = discord.Embed(
-			type = "rich",
-			title = "_Puyo training grounds_ player info",
-			description = f"{player.get_username()}\nID {player.id}",
-			colour = 0x22FF7D # TODO Maybe change this color depending on the rating.
+			type="rich",
+			title="_Puyo training grounds_ player info",
+			description=
+			("" if user is None else f"{user.name}#{user.discriminator}")
+			+ f"\nID {player['id']}",
+			colour=0x22FF7D  # TODO Maybe change this color depending on the rating.
 		)
-		embed.set_author(name=player.display_name)
-		if user != None:
+		embed.set_author(name=player["display_name"] or ("[No name.]" if user is None else user.display_name))
+		if user is not None:
 			embed.set_thumbnail(url=str(user.avatar_url))
 		embed.set_footer(text="Registration date")
-		embed.timestamp = player.time_of_registration
+		embed.timestamp = player["registration_date"]
 		embed.add_field(
 			name="Platforms",
-			value=", ".join([utils.format_platform_name(platform) for platform in player.platform])
+			value="\n".join([
+				utils.format_platform_name(platform) +
+				(
+					""
+					if player["username_" + platform] is None
+					else utils.escape_markdown(f" ({player['username_' + platform]})")
+				)
+				for platform in player["platforms"].split()
+			]),
+			inline=False
 		)
-		embed.add_field(name="Rating", value=f"{int(player.rating.mu)} \u00B1 {int(player.rating.phi)}")
-		embed.add_field(name="Matches", value=player.match_count)
+		embed.add_field(name="Rating", value=f"{int(player['rating_mu'])} \u00B1 {int(2 * player['rating_phi'])}")
+		# Why double the phi? Because phi is just half of the distance to the boundary of the 95% confidence
+		# interval. Source: https://www.glicko.net/glicko/glicko2.pdf (lines 7 to 11).
+		embed.add_field(
+			name="Matches",
+			value=database.execute(
+				"SELECT COUNT(*) FROM matches WHERE player1=:id OR player2=:id",
+				{"id": player["id"]}
+			).fetchone()[0]
+		)
 		await ctx.send(embed=embed)
 
 	# Groupings, these don't do anything on their own.
 	@commands.group(name="info", help="Retrieve information about players and matches.")
 	async def info(self, ctx):
 		if ctx.invoked_subcommand is None:
-			await ctx.send("Usage: ,info (player | match) ...")
+			await ctx.send(f"Usage: {self.bot.command_prefix}info (player | match) ...")
 
 	@info.error
-	async def info_OnError(cog, ctx, error):
+	async def info_OnError(self, ctx, error):
 		await utils.handle_command_error(ctx, error)
 
 	@info.group(name="player", help="Retrieve information about a Puyo player.")
 	async def info_player(self, ctx):
 		if ctx.invoked_subcommand is None:
-			await ctx.send("Usage: ,info player (user | name) <user or name>")
+			await ctx.send(f"Usage: {self.bot.command_prefix}info player (user | name) <user or name>")
 
 	@info_player.command(
 		name="user",
@@ -63,26 +83,29 @@ class Information(commands.Cog):
 	)
 	async def info_player_user(self, ctx, user: discord.User):
 		"""
-		Gets a Player's information from a discord.User. This is done by getting the ID of the User and passing it to
+		Gets a Player's information from a discord.User. This is done by getting
+		the ID of the User and passing it to
 		get_player().
 		:param ctx: Context, comes with every command
 		:param user: A user, which could be a mention, an ID, or anything else Discord can translate into a user.
 		"""
 
-		try:
-			player = get_player(user.id)
-		except PlayerNotFoundError:
-			await ctx.send(f"The user \"{user.display_name}\" isn't registered.")
+		player = database.execute(
+			"SELECT * FROM players WHERE id=? AND platforms <> ''",
+			(user.id,)
+		).fetchone()
+		if player is None:
+			await ctx.send(f"The user \"{utils.escape_markdown(user.display_name)}\" isn't registered.")
 			return
 		await self.send_player_info(ctx, player, user)
 
 	@info_player_user.error
-	async def info_player_user_OnError(cog, ctx, error):
-		if (isinstance(error, commands.MissingRequiredArgument)):
-			await ctx.send("Usage: ,info player user <mention or ID>")
+	async def info_player_user_OnError(self, ctx, error):
+		if isinstance(error, commands.MissingRequiredArgument):
+			await ctx.send(f"Usage: {self.bot.command_prefix}info player user <mention or ID>")
 			return
-		if (isinstance(error, commands.errors.UserNotFound)):
-			await ctx.send(f"Failed to find Discord user based on input `{error.argument}`.");
+		if isinstance(error, commands.errors.UserNotFound):
+			await ctx.send(f"Failed to find Discord user based on input `{error.argument}`.")
 			return
 		await utils.handle_command_error(ctx, error)
 
@@ -91,32 +114,37 @@ class Information(commands.Cog):
 		usage="<display name>",
 		help="Retrieve information about a Puyo player based on their display name."
 	)
-	async def info_player_name(self, ctx, *, name):
+	async def info_player_name(self, ctx, *name):
 		"""
 		Gets a Player's information from a string. This is done by passing the name to spreadsheets.find_player_id(name)
 		:param ctx: Context, comes with every command
 		:param name: String
 		"""
-
-		player_id = spreadsheets.find_player_id(name)
-		if player_id is not None:
-			player = get_player(player_id)
-			user = None
-			try:
-				user = await self.bot.fetch_user(player_id)
-			except UserNotFound:
-				pass
-			await self.send_player_info(ctx, player, user)
-		else:
-			await ctx.send(f"There is no registered player with the display name \"{name}\".")
+		name = " ".join(name).strip()
+		player = database.execute(
+			"SELECT * FROM players WHERE display_name=? AND platforms <> ''",
+			(name,)
+		).fetchone()
+		if player is None:
+			await ctx.send(
+				"There is no registered player with the display name "
+				f"\"{utils.escape_markdown(name)}\"."
+			)
+			return
+		user = None
+		try:
+			user = await self.bot.fetch_user(player["id"])
+		except discord.NotFound:
+			pass
+		await self.send_player_info(ctx, player, user)
 
 	@info_player_name.error
-	async def info_player_name_OnError(cog, ctx, error):
-		if (isinstance(error, commands.MissingRequiredArgument)):
-			await ctx.send("Usage: ,info player name <display name>")
+	async def info_player_name_OnError(self, ctx, error):
+		if isinstance(error, commands.MissingRequiredArgument):
+			await ctx.send(f"Usage: {self.bot.command_prefix}info player name <display name>")
 			return
 		await utils.handle_command_error(ctx, error)
-	
+
 
 def setup(bot):
 	bot.add_cog(Information(bot))
