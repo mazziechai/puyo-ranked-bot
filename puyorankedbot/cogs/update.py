@@ -58,9 +58,10 @@ class Update(commands.Cog):
 	async def update_username(self, ctx, platform, *name):
 		platform = platform.casefold()
 		if not platform in utils.platform_name_mapping:
-			await ctx.send("You need to provide a valid platform that is one of the following: "
-						   + ", ".join(utils.platform_names)
-						   )
+			await ctx.send(
+				"You need to provide a valid platform that is one of the following: "
+				+ ", ".join(utils.platform_names)
+			)
 			return
 		name = " ".join(name).strip()
 		player = database.execute(

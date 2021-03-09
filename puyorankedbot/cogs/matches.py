@@ -36,11 +36,11 @@ class Matches(commands.Cog):
 			return player["display_name"]
 
 	async def add_report_field(self, embed, player, score, old_mu, new_mu, new_phi):
-		d = new_mu - old_mu
+		d = int(new_mu) - int(old_mu)
 		embed.add_field(
 			name=utils.escape_markdown(await self.get_player_name(player)),
 			value=f"**{score}**\n{int(new_mu)} \u00B1 {int(2 * new_phi)}\n" +
-				  ('+' if d >= 0 else '\u2013') + f" {int(abs(d))}"
+				  ('+' if d >= 0 else '\u2013') + f" {abs(d)}"
 		)
 
 	@classmethod

@@ -26,9 +26,10 @@ class Registration(commands.Cog):
 		"""
 		platform = platform.casefold()
 		if not platform in utils.platform_name_mapping:
-			await ctx.send("You need to provide a valid platform that is one of the following: "
-						   + ", ".join(utils.platform_names)
-						   )
+			await ctx.send(
+				"You need to provide a valid platform that is one of the following: "
+				+ ", ".join(utils.platform_names)
+			)
 			return
 		player = database.execute("SELECT platforms FROM players WHERE id = ?", (ctx.author.id,)).fetchone()
 		if player is None:
@@ -77,9 +78,10 @@ class Registration(commands.Cog):
 		"""
 		platform = platform.casefold()
 		if not platform.casefold() in utils.platform_name_mapping:
-			await ctx.send("You need to provide a valid platform that is one of the following: "
-						   + ", ".join(utils.platform_names)
-						   )
+			await ctx.send(
+				"You need to provide a valid platform that is one of the following: "
+				+ ", ".join(utils.platform_names)
+			)
 			return
 		player = database.execute(
 			"SELECT platforms FROM players WHERE id = ? AND platforms <> ''",
@@ -102,7 +104,7 @@ class Registration(commands.Cog):
 					WHERE id = :id
 					"""
 					if len(platforms) == 0 else
-					"UPDATE players SET platforms = :platforms WHERE id = :id",
+					f"UPDATE players SET platforms = :platforms, username_{platform} = NULL WHERE id = :id",
 					{"platforms": " ".join(platforms), "id": ctx.author.id}
 				)
 				database.commit()
