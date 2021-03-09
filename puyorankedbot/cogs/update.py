@@ -29,8 +29,8 @@ class Update(commands.Cog):
 	async def update_displayname(self, ctx, *name):
 		name = " ".join(name).strip()
 		if database.execute(
-				"SELECT EXISTS (SELECT 1 FROM players WHERE id = ? AND platforms <> '')",
-				(ctx.author.id,)
+			"SELECT EXISTS (SELECT 1 FROM players WHERE id = ? AND platforms <> '')",
+			(ctx.author.id,)
 		).fetchone()[0] == 0:
 			await ctx.send("You are not registered yet.")
 			return
@@ -40,8 +40,8 @@ class Update(commands.Cog):
 			await ctx.send("Cleared display name.")
 		else:
 			if database.execute(
-					"SELECT EXISTS (SELECT 1 FROM players WHERE display_name = ?)",
-					(name,)
+				"SELECT EXISTS (SELECT 1 FROM players WHERE display_name = ?)",
+				(name,)
 			).fetchone()[0] == 1:
 				await ctx.send(
 					f"The display name \"{utils.escape_markdown(name)}\" is already in use by another player.")
@@ -79,8 +79,8 @@ class Update(commands.Cog):
 			await ctx.send("Cleared username for {utils.format_platform_name(platform)}.")
 		else:
 			if database.execute(
-					f"SELECT EXISTS (SELECT 1 FROM players WHERE username_{platform} = ?)",
-					(name,)
+				f"SELECT EXISTS (SELECT 1 FROM players WHERE username_{platform} = ?)",
+				(name,)
 			).fetchone()[0] == 1:
 				await ctx.send(
 					f"The username \"{utils.escape_markdown(name)}\" on "

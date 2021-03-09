@@ -33,6 +33,21 @@ def format_platform_name(platform):
 		return "Unknown"
 
 
+def get_rank(mu):
+	if 999 >= mu:
+		return "Bronze"
+	if 1000 <= mu <= 1249:
+		return "Silver"
+	if 1250 <= mu <= 1499:
+		return "Gold"
+	if 1500 <= mu <= 1749:
+		return "Platinum"
+	if 1750 <= mu <= 1999:
+		return "Diamond"
+	if 2000 <= mu:
+		return "Legend"
+
+
 def escape_markdown(s):
 	return re.sub(
 		r"\\\\([_*\[\]()~`>\#\+\-=|\.!])",
