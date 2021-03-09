@@ -1,23 +1,24 @@
-import discord
 from discord.ext import commands
 
 from core import utils
 from core.database import database
 
+
 class Update(commands.Cog):
 	"""
 	Commands for updating player info.
 	"""
+
 	def __init__(self, bot):
 		self.bot = bot
 
 	@commands.group(name="update", help="Update your information.")
 	async def update(self, ctx):
-		if ctx.invoked_subcommand == None:
+		if ctx.invoked_subcommand is None:
 			await ctx.send(f"Usage: {self.bot.command_prefix}update (displayname | username) ...")
-	
+
 	@update.error
-	async def update_OnError(cog, ctx, error):
+	async def update_OnError(self, ctx, error):
 		await utils.handle_command_error(ctx, error)
 
 	@update.command(
@@ -28,8 +29,8 @@ class Update(commands.Cog):
 	async def update_displayname(self, ctx, *name):
 		name = " ".join(name).strip()
 		if database.execute(
-			"SELECT EXISTS (SELECT 1 FROM players WHERE id = ? AND platforms <> '')",
-			(ctx.author.id,)
+				"SELECT EXISTS (SELECT 1 FROM players WHERE id = ? AND platforms <> '')",
+				(ctx.author.id,)
 		).fetchone()[0] == 0:
 			await ctx.send("You are not registered yet.")
 			return
@@ -39,10 +40,11 @@ class Update(commands.Cog):
 			await ctx.send("Cleared display name.")
 		else:
 			if database.execute(
-				"SELECT EXISTS (SELECT 1 FROM players WHERE display_name = ?)",
-				(name,)
+					"SELECT EXISTS (SELECT 1 FROM players WHERE display_name = ?)",
+					(name,)
 			).fetchone()[0] == 1:
-				await ctx.send(f"The display name \"{utils.escape_markdown(name)}\" is already in use by another player.")
+				await ctx.send(
+					f"The display name \"{utils.escape_markdown(name)}\" is already in use by another player.")
 				return
 			database.execute("UPDATE players SET display_name = ? WHERE id = ?", (name, ctx.author.id))
 			database.commit()
@@ -57,15 +59,15 @@ class Update(commands.Cog):
 		platform = platform.casefold()
 		if not platform in utils.platform_name_mapping:
 			await ctx.send("You need to provide a valid platform that is one of the following: "
-				+ ", ".join(utils.platform_names)
-			)
+						   + ", ".join(utils.platform_names)
+						   )
 			return
 		name = " ".join(name).strip()
 		player = database.execute(
 			"SELECT platforms FROM players WHERE id = ? AND platforms <> ''",
 			(ctx.author.id,)
 		).fetchone()
-		if player == None:
+		if player is None:
 			await ctx.send("You are not registered yet.")
 			return
 		if platform not in player[0].split():
@@ -77,8 +79,8 @@ class Update(commands.Cog):
 			await ctx.send("Cleared username for {utils.format_platform_name(platform)}.")
 		else:
 			if database.execute(
-				f"SELECT EXISTS (SELECT 1 FROM players WHERE username_{platform} = ?)",
-				(name,)
+					f"SELECT EXISTS (SELECT 1 FROM players WHERE username_{platform} = ?)",
+					(name,)
 			).fetchone()[0] == 1:
 				await ctx.send(
 					f"The username \"{utils.escape_markdown(name)}\" on "
@@ -93,11 +95,12 @@ class Update(commands.Cog):
 			)
 
 	@update_username.error
-	async def update_username_OnError(cog, ctx, error):
-		if (isinstance(error, commands.MissingRequiredArgument)):
+	async def update_username_OnError(self, ctx, error):
+		if isinstance(error, commands.MissingRequiredArgument):
 			await ctx.send(f"Usage: {self.bot.command_prefix}update username <platform> [username]")
 			return
 		await utils.handle_command_error(ctx, error)
+
 
 def setup(bot):
 	bot.add_cog(Update(bot))

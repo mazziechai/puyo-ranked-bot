@@ -1,5 +1,4 @@
 from discord.ext import commands
-from discord.ext.commands import Cog
 
 from core import utils
 from core.database import database
@@ -28,11 +27,11 @@ class Registration(commands.Cog):
 		platform = platform.casefold()
 		if not platform in utils.platform_name_mapping:
 			await ctx.send("You need to provide a valid platform that is one of the following: "
-				+ ", ".join(utils.platform_names)
-			)
+						   + ", ".join(utils.platform_names)
+						   )
 			return
 		player = database.execute("SELECT platforms FROM players WHERE id = ?", (ctx.author.id,)).fetchone()
-		if player == None:
+		if player is None:
 			# First time registering.
 			database.execute(
 				"INSERT INTO players (id, platforms) VALUES (?, ?)",
@@ -57,7 +56,7 @@ class Registration(commands.Cog):
 
 	@register.error
 	async def register_OnError(self, ctx, error):
-		if (isinstance(error, commands.MissingRequiredArgument)):
+		if isinstance(error, commands.MissingRequiredArgument):
 			await ctx.send(f"Usage: {self.bot.command_prefix}register <platform>")
 		elif isinstance(error, NotImplementedError):
 			await ctx.send("You're attempting to access a command that isn't ready yet.")
@@ -79,14 +78,14 @@ class Registration(commands.Cog):
 		platform = platform.casefold()
 		if not platform.casefold() in utils.platform_name_mapping:
 			await ctx.send("You need to provide a valid platform that is one of the following: "
-				+ ", ".join(utils.platform_names)
-			)
+						   + ", ".join(utils.platform_names)
+						   )
 			return
 		player = database.execute(
 			"SELECT platforms FROM players WHERE id = ? AND platforms <> ''",
 			(ctx.author.id,)
 		).fetchone()
-		if player == None:
+		if player is None:
 			await ctx.send(f"You are not signed up here, no worries.")
 		else:
 			platforms = player["platforms"].split()
@@ -115,11 +114,12 @@ class Registration(commands.Cog):
 				await ctx.send(f"You are not signed up for {utils.format_platform_name(platform)}.")
 
 	@unregister.error
-	async def unregister_OnError(cog, ctx, error):
-		if (isinstance(error, commands.MissingRequiredArgument)):
+	async def unregister_OnError(self, ctx, error):
+		if isinstance(error, commands.MissingRequiredArgument):
 			await ctx.send(f"Usage: {self.bot.command_prefix}unregister <platforms>")
 			return
 		await utils.handle_command_error(ctx, error)
+
 
 def setup(bot):
 	bot.add_cog(Registration(bot))

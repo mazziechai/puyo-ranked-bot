@@ -5,6 +5,7 @@ from core import utils
 from core.database import database
 from core.glicko2 import glicko2
 
+
 class Matches(commands.Cog):
 	"""
 	Cog for adding, removing, and fixing matches in the system. Calculates rating.
@@ -22,11 +23,11 @@ class Matches(commands.Cog):
 			await ctx.send(f"Usage: {self.bot.command_prefix}match report <opponent> <your score> <opponent score>")
 
 	@match.error
-	async def match_OnError(cog, ctx, error):
+	async def match_OnError(self, ctx, error):
 		await utils.handle_command_error(ctx, error)
 
 	async def get_player_name(self, player):
-		if player["display_name"] == None:
+		if player["display_name"] is None:
 			try:
 				return (await self.bot.fetch_user(player["id"])).display_name
 			except discord.NotFound:
@@ -37,9 +38,9 @@ class Matches(commands.Cog):
 	async def add_report_field(self, embed, player, score, old_mu, new_mu, new_phi):
 		d = new_mu - old_mu
 		embed.add_field(
-			name = utils.escape_markdown(await self.get_player_name(player)),
-			value = f"**{score}**\n{int(new_mu)} \u00B1 {int(2*new_phi)}\n" +
-				('+' if d >= 0 else '\u2013') +	f" {int(abs(d))}"
+			name=utils.escape_markdown(await self.get_player_name(player)),
+			value=f"**{score}**\n{int(new_mu)} \u00B1 {int(2 * new_phi)}\n" +
+				  ('+' if d >= 0 else '\u2013') + f" {int(abs(d))}"
 		)
 
 	@classmethod
@@ -60,19 +61,19 @@ class Matches(commands.Cog):
 		Reports a match to the system, calculates the ratings, and sends them as a message.
 		:param ctx: Context, comes with every command
 		:param user: A user, which could be a mention, an ID, or anything else Discord can translate into a user.
-		:param score1: int
-		:param score2: int
+		:param score1s: Score of player 1
+		:param score2s: Score of player 2
 		:return:
 		"""
 		if ctx.author.id == user.id:
 			await ctx.send("You can't report a fight with yourself.")
 			return
 		player1 = self.get_player_by_ID(ctx.author.id)
-		if player1 == None:
+		if player1 is None:
 			await ctx.send("You are not registered yet.")
 			return
 		player2 = self.get_player_by_ID(user.id)
-		if player2 == None:
+		if player2 is None:
 			await ctx.send("The opponent user is not yet registered.")
 			return
 
@@ -116,9 +117,9 @@ class Matches(commands.Cog):
 		database.commit()
 
 		embed = discord.Embed(
-			type = "rich",
-			title = "Match recorded",
-			color = 0xFFBE37
+			type="rich",
+			title="Match recorded",
+			color=0xFFBE37
 		)
 		await self.add_report_field(embed, player1, score1, old_rating1.mu, new_rating1.mu, new_rating1.phi)
 		await self.add_report_field(embed, player2, score2, old_rating2.mu, new_rating2.mu, new_rating2.phi)
@@ -126,12 +127,12 @@ class Matches(commands.Cog):
 		await ctx.send(embed=embed)
 
 	@match_report.error
-	async def match_report_OnError(cog, ctx, error):
-		if (isinstance(error, commands.MissingRequiredArgument)):
+	async def match_report_OnError(self, ctx, error):
+		if isinstance(error, commands.MissingRequiredArgument):
 			await ctx.send(f"Usage: {self.bot.command_prefix}match report <opponent> <your score> <opponent score>")
 			return
-		if (isinstance(error, commands.errors.UserNotFound)):
-			await ctx.send(f"Failed to find Discord user based on input `{error.argument}`.");
+		if isinstance(error, commands.errors.UserNotFound):
+			await ctx.send(f"Failed to find Discord user based on input `{error.argument}`.")
 			return
 		await utils.handle_command_error(ctx, error)
 

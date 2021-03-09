@@ -22,16 +22,17 @@ class Information(commands.Cog):
 		:param player: The player database row object.
 		:param user: The Discord user object.
 		"""
+
 		embed = discord.Embed(
-			type = "rich",
-			title = "_Puyo training grounds_ player info",
-			description =
-				("" if user == None else f"{user.name}#{user.discriminator}")
-				+ f"\nID {player['id']}",
-			colour = 0x22FF7D # TODO Maybe change this color depending on the rating.
+			type="rich",
+			title="_Puyo training grounds_ player info",
+			description=
+			("" if user is None else f"{user.name}#{user.discriminator}")
+			+ f"\nID {player['id']}",
+			colour=0x22FF7D  # TODO Maybe change this color depending on the rating.
 		)
-		embed.set_author(name=player["display_name"] or ("[No name.]" if user == None else user.display_name))
-		if user != None:
+		embed.set_author(name=player["display_name"] or ("[No name.]" if user is None else user.display_name))
+		if user is not None:
 			embed.set_thumbnail(url=str(user.avatar_url))
 		embed.set_footer(text="Registration date")
 		embed.timestamp = player["registration_date"]
@@ -41,14 +42,14 @@ class Information(commands.Cog):
 				utils.format_platform_name(platform) +
 				(
 					""
-					if player["username_"+platform] == None
-					else utils.escape_markdown(f" ({player['username_'+platform]})")
+					if player["username_" + platform] is None
+					else utils.escape_markdown(f" ({player['username_' + platform]})")
 				)
 				for platform in player["platforms"].split()
 			]),
 			inline=False
 		)
-		embed.add_field(name="Rating", value=f"{int(player['rating_mu'])} \u00B1 {int(2*player['rating_phi'])}")
+		embed.add_field(name="Rating", value=f"{int(player['rating_mu'])} \u00B1 {int(2 * player['rating_phi'])}")
 		# Why double the phi? Because phi is just half of the distance to the boundary of the 95% confidence
 		# interval. Source: https://www.glicko.net/glicko/glicko2.pdf (lines 7 to 11).
 		embed.add_field(
@@ -67,7 +68,7 @@ class Information(commands.Cog):
 			await ctx.send(f"Usage: {self.bot.command_prefix}info (player | match) ...")
 
 	@info.error
-	async def info_OnError(cog, ctx, error):
+	async def info_OnError(self, ctx, error):
 		await utils.handle_command_error(ctx, error)
 
 	@info.group(name="player", help="Retrieve information about a Puyo player.")
@@ -93,18 +94,18 @@ class Information(commands.Cog):
 			"SELECT * FROM players WHERE id=? AND platforms <> ''",
 			(user.id,)
 		).fetchone()
-		if player == None:
+		if player is None:
 			await ctx.send(f"The user \"{utils.escape_markdown(user.display_name)}\" isn't registered.")
 			return
 		await self.send_player_info(ctx, player, user)
 
 	@info_player_user.error
-	async def info_player_user_OnError(cog, ctx, error):
-		if (isinstance(error, commands.MissingRequiredArgument)):
+	async def info_player_user_OnError(self, ctx, error):
+		if isinstance(error, commands.MissingRequiredArgument):
 			await ctx.send(f"Usage: {self.bot.command_prefix}info player user <mention or ID>")
 			return
-		if (isinstance(error, commands.errors.UserNotFound)):
-			await ctx.send(f"Failed to find Discord user based on input `{error.argument}`.");
+		if isinstance(error, commands.errors.UserNotFound):
+			await ctx.send(f"Failed to find Discord user based on input `{error.argument}`.")
 			return
 		await utils.handle_command_error(ctx, error)
 
@@ -124,7 +125,7 @@ class Information(commands.Cog):
 			"SELECT * FROM players WHERE display_name=? AND platforms <> ''",
 			(name,)
 		).fetchone()
-		if player == None:
+		if player is None:
 			await ctx.send(
 				"There is no registered player with the display name "
 				f"\"{utils.escape_markdown(name)}\"."
@@ -138,12 +139,12 @@ class Information(commands.Cog):
 		await self.send_player_info(ctx, player, user)
 
 	@info_player_name.error
-	async def info_player_name_OnError(cog, ctx, error):
-		if (isinstance(error, commands.MissingRequiredArgument)):
+	async def info_player_name_OnError(self, ctx, error):
+		if isinstance(error, commands.MissingRequiredArgument):
 			await ctx.send(f"Usage: {self.bot.command_prefix}info player name <display name>")
 			return
 		await utils.handle_command_error(ctx, error)
-	
+
 
 def setup(bot):
 	bot.add_cog(Information(bot))

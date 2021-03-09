@@ -1,9 +1,10 @@
+import os
+import sqlite3
+
 from discord.ext import commands
 
 import config
 from logger import log_info
-from core import utils
-import sqlite3, os
 
 if not os.path.exists("../data.db3"):
 	log_info("Database file not found, initializing a new one.")
