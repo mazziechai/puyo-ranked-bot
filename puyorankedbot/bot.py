@@ -18,23 +18,21 @@ config.create_config()
 token = config.get_config("token")
 bot = commands.Bot(command_prefix=config.get_config("bot_prefix"))
 
-extensions = [
-	"cogs.information",
-	"cogs.matches",
-	"cogs.registration",
-	"cogs.update"
-]
-
-# Here, we're loading all of the extensions listed above.
+# Load command cogs.
 if __name__ == "__main__":
-	for extension in extensions:
-		bot.load_extension(extension)
+	for file_name in os.listdir("cogs"):
+		if file_name.endswith(".py"):
+			bot.load_extension("cogs." + file_name[:-3])
 
 
 @bot.event
 async def on_ready():
 	log_info("Logged in as {}#{}".format(bot.user.name, bot.user.discriminator))
 
+@bot.event
+async def on_command_error(ctx, error):
+	# Silent command not found errors, other errors should be handled through each command.
+	pass
 
 # Logging in.
 bot.run(token, bot=True, reconnect=True)
