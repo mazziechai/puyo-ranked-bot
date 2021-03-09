@@ -31,15 +31,15 @@ class Leaderboard(commands.Cog):
 			return
 
 		index = 0
-		lines = []
+		message = "**Top Puyo players**"
 		for player in players:
 			index += 1
-			lines.append(
-				str(index) + ". " +
+			message += (
+				"\n" + str(index) + ". " +
 				utils.escape_markdown(await self.get_player_name(player)) +
 				" | " + str(int(player["rating_mu"])) + " \u00B1 " + str(int(2 * player["rating_phi"]))
 			)
-		await ctx.send("**Top Puyo players**\n" + "\n".join(lines))
+		await ctx.send(message)
 
 	@leaderboard.error
 	async def leaderboard_OnError(self, ctx, error):
