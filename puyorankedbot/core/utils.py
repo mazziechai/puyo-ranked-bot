@@ -1,6 +1,7 @@
 import logger
 import traceback
 import re
+from bisect import bisect
 
 
 def parse_integer(s, mustNotBeNegative=False):
@@ -33,20 +34,38 @@ def format_platform_name(platform):
 		return "Unknown"
 
 
-def get_rank(mu):
-	if 999 >= mu:
-		return "Bronze"
-	if 1000 <= mu <= 1249:
-		return "Silver"
-	if 1250 <= mu <= 1499:
-		return "Gold"
-	if 1500 <= mu <= 1749:
-		return "Platinum"
-	if 1750 <= mu <= 1999:
-		return "Diamond"
-	if 2000 <= mu:
-		return "Legend"
+class Rank:
+	def __init__(self, name, color, value):
+		self.name = name
+		self.color = color
+		self.value = value
 
+ranks = [
+	Rank("Bronze", 0xE7A264, 0),
+	Rank("Silver", 0xE4E4E4, 1),
+	Rank("Gold", 0xDDDA4C, 2),
+	Rank("Platinum", 0xD6EEF3, 3),
+	Rank("Diamond", 0x7EDEF3, 4),
+	Rank("Legend", 0xFF6060, 5)
+]
+rank_null = Rank("[In placements.]", 0x9D9D9D, -1)
+rank_threshold_mapping = [1000, 1250, 1500, 1750, 2000]
+
+def get_rank(mu, phi=0):
+	return ranks[bisect(rank_threshold_mapping, mu)] if phi < 150 else rank_null
+
+def get_rank_with_comparison(old_mu, old_phi, new_mu, new_phi):
+	old_rank = get_rank(old_mu, old_phi)
+	new_rank = get_rank(new_mu, new_phi)
+	if old_rank == new_rank:
+		return old_rank.name
+	else:
+		if old_rank == rank_null:
+			return f"**Placed into {new_rank.name}**"
+		elif new_rank == rank_null:
+			return f"**Rank lost, back to placement**"
+		else:
+			return f"**{'Promoted' if new_rank.value > old_rank.value else 'Demoted'} to {new_rank.name}**"
 
 def escape_markdown(s):
 	return re.sub(

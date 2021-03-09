@@ -35,12 +35,17 @@ class Matches(commands.Cog):
 		else:
 			return player["display_name"]
 
-	async def add_report_field(self, embed, player, score, old_mu, new_mu, new_phi):
-		d = int(new_mu) - int(old_mu)
+	async def add_report_field(self, embed, player, score, old_mu, old_phi, new_mu, new_phi):
+		rating_change = int(new_mu) - int(old_mu)
+		rating_change_sign = '+' if rating_change >= 0 else '\u2013'
 		embed.add_field(
 			name=utils.escape_markdown(await self.get_player_name(player)),
-			value=f"**{score}**\n{int(new_mu)} \u00B1 {int(2 * new_phi)}\n" +
-				  ('+' if d >= 0 else '\u2013') + f" {abs(d)}"
+			value=f"""
+				**{score}**
+				{int(new_mu)} \u00B1 {int(2 * new_phi)}
+				{rating_change_sign} {abs(rating_change)}
+				{utils.get_rank_with_comparison(old_mu, old_phi, new_mu, new_phi)}
+			"""
 		)
 
 	@classmethod
@@ -121,8 +126,16 @@ class Matches(commands.Cog):
 			title="Match recorded",
 			color=0xFFBE37
 		)
-		await self.add_report_field(embed, player1, score1, old_rating1.mu, new_rating1.mu, new_rating1.phi)
-		await self.add_report_field(embed, player2, score2, old_rating2.mu, new_rating2.mu, new_rating2.phi)
+		await self.add_report_field(
+			embed, player1, score1,
+			old_rating1.mu, old_rating1.phi,
+			new_rating1.mu, new_rating1.phi
+		)
+		await self.add_report_field(
+			embed, player2, score2,
+			old_rating2.mu, old_rating2.phi,
+			new_rating2.mu, new_rating2.phi
+		)
 		embed.set_footer(text=f"Match ID: {cursor.lastrowid}")
 		await ctx.send(embed=embed)
 

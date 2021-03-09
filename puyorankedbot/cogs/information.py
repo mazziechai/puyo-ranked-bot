@@ -22,23 +22,7 @@ class Information(commands.Cog):
 		:param player: The player database row object.
 		:param user: The Discord user object.
 		"""
-		if int(2 * player['rating_phi']) <= 300:
-			rank = utils.get_rank(player['rating_mu'])
-			if rank == "Bronze":
-				color = 0xff6600
-			elif rank == "Silver":
-				color = 0xe6ffe6
-			elif rank == "Gold":
-				color = 0xffff4d
-			elif rank == "Platinum":
-				color = 0xe6ffff
-			elif rank == "Diamond":
-				color = 0x1aa3ff
-			elif rank == "Legend":
-				color = 0xff4dd2
-		else:
-			rank = "Placements"
-			color = 0x66ff33
+		rank = utils.get_rank(player["rating_mu"], player["rating_phi"])
 
 		embed = discord.Embed(
 			type="rich",
@@ -46,7 +30,7 @@ class Information(commands.Cog):
 			description=
 			("" if user is None else f"{user.name}#{user.discriminator}")
 			+ f"\nID {player['id']}",
-			colour=color
+			colour=rank.color
 		)
 		embed.set_author(name=player["display_name"] or ("[No name.]" if user is None else user.display_name))
 		if user is not None:
@@ -69,7 +53,7 @@ class Information(commands.Cog):
 		embed.add_field(name="Rating", value=f"{int(player['rating_mu'])} \u00B1 {int(2 * player['rating_phi'])}")
 		# Why double the phi? Because phi is just half of the distance to the boundary of the 95% confidence
 		# interval. Source: https://www.glicko.net/glicko/glicko2.pdf (lines 7 to 11).
-		embed.add_field(name="Rank", value=f"{rank}")
+		embed.add_field(name="Rank", value=rank.name)
 		embed.add_field(
 			name="Matches",
 			value=database.execute(
@@ -220,7 +204,7 @@ class Information(commands.Cog):
 		name = player_row["display_name"]
 		if name is None:
 			try:
-				name = self.bot.fetch_user(player_id).display_name
+				name = (await self.bot.fetch_user(match["player"+player])).display_name
 			except discord.NotFound:
 				name = "[No name.]"
 		rating_change = match[f"player{player}_rating_change"]
@@ -232,6 +216,10 @@ class Information(commands.Cog):
 			{int(match[f"player{player}_old_mu"])} \u00B1 {int(2 * match[f"player{player}_old_phi"])} \u2192 \
 			{int(match[f"player{player}_new_mu"])} \u00B1 {int(2 * match[f"player{player}_new_phi"])}
 			{rating_change_sign} {abs(rating_change)}
+			{utils.get_rank_with_comparison(
+				match[f"player{player}_old_mu"], match[f"player{player}_old_phi"],
+				match[f"player{player}_new_mu"], match[f"player{player}_new_phi"]
+			)}
 			"""
 		)
 
