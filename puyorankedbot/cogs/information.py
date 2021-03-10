@@ -197,30 +197,31 @@ class Information(commands.Cog):
 
 	# info match
 	async def add_match_embed_player(self, embed, match, player):
+		player = "player" + player
 		player_row = database.execute(
 			"SELECT display_name FROM players WHERE id = ?",
-			(match["player"+player],)
+			(match[player],)
 		).fetchone()
 		name = player_row["display_name"]
 		if name is None:
 			try:
-				name = (await self.bot.fetch_user(match["player"+player])).display_name
+				name = (await self.bot.fetch_user(match[player])).display_name
 			except discord.NotFound:
 				name = "[No name.]"
-		rating_change = match[f"player{player}_rating_change"]
+		rating_change = match[player + "_rating_change"]
 		rating_change_sign = '+' if rating_change >= 0 else '\u2013'
 		embed.add_field(
 			name=utils.escape_markdown(name),
-			value=f"""
-			**{match[f"player{player}_score"]}**
-			{int(match[f"player{player}_old_mu"])} \u00B1 {int(2 * match[f"player{player}_old_phi"])} \u2192 \
-			{int(match[f"player{player}_new_mu"])} \u00B1 {int(2 * match[f"player{player}_new_phi"])}
-			{rating_change_sign} {abs(rating_change)}
-			{utils.get_rank_with_comparison(
-				match[f"player{player}_old_mu"], match[f"player{player}_old_phi"],
-				match[f"player{player}_new_mu"], match[f"player{player}_new_phi"]
-			)}
-			"""
+			value=(
+				f"**{match[player + '_score']}**\n"
+				f"{int(match[player + '_old_mu'])} \u00B1 {int(2 * match[player + '_old_phi'])} \u2192 "
+				f"{int(match[player + '_new_mu'])} \u00B1 {int(2 * match[player + '_new_phi'])}\n"
+				f"{rating_change_sign} {abs(rating_change)}\n" +
+				utils.get_rank_with_comparison(
+					match[player + '_old_mu'], match[player + '_old_phi'],
+					match[player + '_new_mu'], match[player + '_new_phi']
+				)
+			)
 		)
 
 	@info.command(

@@ -40,12 +40,12 @@ class Matches(commands.Cog):
 		rating_change_sign = '+' if rating_change >= 0 else '\u2013'
 		embed.add_field(
 			name=utils.escape_markdown(await self.get_player_name(player)),
-			value=f"""
-				**{score}**
-				{int(new_mu)} \u00B1 {int(2 * new_phi)}
-				{rating_change_sign} {abs(rating_change)}
-				{utils.get_rank_with_comparison(old_mu, old_phi, new_mu, new_phi)}
-			"""
+			value=(
+				f"**{score}**\n"
+				f"{int(new_mu)} \u00B1 {int(2 * new_phi)}\n"
+				f"{rating_change_sign} {abs(rating_change)}\n" +
+				utils.get_rank_with_comparison(old_mu, old_phi, new_mu, new_phi)
+			)
 		)
 
 	@classmethod
