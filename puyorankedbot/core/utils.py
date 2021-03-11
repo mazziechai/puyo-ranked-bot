@@ -1,4 +1,4 @@
-import logger
+from logger import logger
 import traceback
 import re
 from bisect import bisect
@@ -16,7 +16,7 @@ def parse_integer(s, mustNotBeNegative=False):
 
 async def handle_command_error(ctx, error):
 	await ctx.send("An error occured while executing the command.")
-	logger.log_error(''.join(traceback.format_exception(None, error, error.__traceback__)))
+	logger.error(''.join(traceback.format_exception(None, error, error.__traceback__)))
 
 
 platform_names = ["PC", "Switch", "PS4"]

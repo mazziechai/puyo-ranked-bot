@@ -9,23 +9,3 @@ stream_handler = logging.StreamHandler()
 stream_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 logger.addHandler(stream_handler)
-
-
-def log_info(log):
-	logger.info(log)
-
-
-def log_error(log):
-	logger.error(log)
-
-
-def log_debug(log):
-	logger.debug(log)
-
-
-def log_critical(log):
-	logger.critical(log)
-
-
-def log_exception(log):
-	logger.exception(log)

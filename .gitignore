@@ -3,3 +3,5 @@
 /discord.log
 /**/__pycache__/
 /config.json
+/rating_period_info.json
+/**/*.swp

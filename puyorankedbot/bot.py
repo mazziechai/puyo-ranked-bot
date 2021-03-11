@@ -4,14 +4,15 @@ import sqlite3
 from discord.ext import commands
 
 import config
-from logger import log_info
+from logger import logger
+from core import scheduled_rating_update
 
 if not os.path.exists("../data.db3"):
-	log_info("Database file not found, initializing a new one.")
+	logger.info("Database file not found, initializing a new one.")
 	db = sqlite3.connect("../data.db3")
 	db.executescript(open("../database_schema.sql", "r").read())
 	db.close()
-	log_info("The database has been set up.")
+	logger.info("The database has been set up.")
 
 config.create_config()
 
@@ -28,7 +29,8 @@ if __name__ == "__main__":
 
 @bot.event
 async def on_ready():
-	log_info("Logged in as {}#{}".format(bot.user.name, bot.user.discriminator))
+	logger.info("Logged in as {}#{}".format(bot.user.name, bot.user.discriminator))
+	scheduled_rating_update.setup()
 
 @bot.event
 async def on_command_error(ctx, error):

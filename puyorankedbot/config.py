@@ -36,6 +36,16 @@ def set_config(key, value):
 	else:
 		raise ConfigNotFoundException("config.json is missing")
 
+def input_integer(prompt, allow_non_positive=True):
+	while True:
+		try:
+			s = input(prompt)
+			i = int(s)
+			if allow_non_positive or i > 0:
+				return i
+		except ValueError:
+			pass
+		print("The input must be a positive integer.")
 
 def create_config():
 	"""
@@ -48,10 +58,11 @@ def create_config():
 	else:
 		with open("../config.json", "w") as file_obj:
 			print("Configuration file not found, supply the following:")
-			token = input("Bot token: ")
-			bot_prefix = input("Bot prefix: ")
 			data = {
-				"token": token,
-				"bot_prefix": bot_prefix
+				"token": input("Bot token: "),
+				"bot_prefix": input("Bot prefix: "),
+				"rating_period_start": input_integer("Rating period 0 start point (POSIX timestamp, seconds): "),
+				"rating_period_length": input_integer("Rating period length (seconds): ", False),
+				"rating_phi_increase_rate": input_integer("Rating increase rate: ", False)
 			}
-			json.dump(data, file_obj)
+			json.dump(data, file_obj, indent='\t')
