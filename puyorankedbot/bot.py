@@ -17,6 +17,7 @@ config.create_config()
 
 token = config.get_config("token")
 bot = commands.Bot(command_prefix=config.get_config("bot_prefix"))
+bot.help_command = commands.DefaultHelpCommand(width=256)
 
 # Load command cogs.
 if __name__ == "__main__":

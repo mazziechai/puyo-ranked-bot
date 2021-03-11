@@ -58,7 +58,7 @@ class Registration(commands.Cog):
 	@register.error
 	async def register_OnError(self, ctx, error):
 		if isinstance(error, commands.MissingRequiredArgument):
-			await ctx.send(f"Usage: {self.bot.command_prefix}register <platform>")
+			await ctx.send_help(self.register)
 		elif isinstance(error, NotImplementedError):
 			await ctx.send("You're attempting to access a command that isn't ready yet.")
 		else:
@@ -118,7 +118,7 @@ class Registration(commands.Cog):
 	@unregister.error
 	async def unregister_OnError(self, ctx, error):
 		if isinstance(error, commands.MissingRequiredArgument):
-			await ctx.send(f"Usage: {self.bot.command_prefix}unregister <platforms>")
+			await ctx.send_help(self.unregister)
 			return
 		await utils.handle_command_error(ctx, error)
 

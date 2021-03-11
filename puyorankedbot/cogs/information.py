@@ -61,13 +61,24 @@ class Information(commands.Cog):
 				{"id": player["id"]}
 			).fetchone()[0]
 		)
+		if ctx.author.id != player["id"]:
+			command_user_row = database.execute(
+				"SELECT rating_mu FROM players WHERE id=? AND platforms <> ''",
+				(ctx.author.id,)
+			).fetchone()
+			if command_user_row is not None:
+				match_goal = utils.get_match_goal(player["rating_mu"], command_user_row[0]) 
+				embed.add_field(
+					name="If you battle",
+					value=f"First to **{match_goal}**"
+				)
 		await ctx.send(embed=embed)
 
 	# Groupings, these don't do anything on their own.
 	@commands.group(name="info", help="Retrieve information about players and matches.")
 	async def info(self, ctx):
 		if ctx.invoked_subcommand is None:
-			await ctx.send(f"Usage: {self.bot.command_prefix}info (player | match) ...")
+			await ctx.send_help(self.info)
 
 	@info.error
 	async def info_OnError(self, ctx, error):
@@ -77,7 +88,7 @@ class Information(commands.Cog):
 	@info.group(name="player", help="Retrieve information about a Puyo player.")
 	async def info_player(self, ctx):
 		if ctx.invoked_subcommand is None:
-			await ctx.send(f"Usage: {self.bot.command_prefix}info player (user | name | username) <user or name>")
+			await ctx.send_help(self.info_player)
 
 	@info_player.command(
 		name="user",
@@ -105,7 +116,7 @@ class Information(commands.Cog):
 	@info_player_user.error
 	async def info_player_user_OnError(self, ctx, error):
 		if isinstance(error, commands.MissingRequiredArgument):
-			await ctx.send(f"Usage: {self.bot.command_prefix}info player user <mention or ID>")
+			await ctx.send_help(self.info_player_user)
 			return
 		if isinstance(error, commands.errors.UserNotFound):
 			await ctx.send(f"Failed to find Discord user based on input `{error.argument}`.")
@@ -125,7 +136,7 @@ class Information(commands.Cog):
 		"""
 		name = " ".join(name).strip()
 		if name == "":
-			await ctx.send(f"Usage: {self.bot.command_prefix}info player name <display name>")
+			await ctx.send_help(self.info_player_name)
 			return
 
 		player = database.execute(
@@ -148,7 +159,7 @@ class Information(commands.Cog):
 	@info_player_name.error
 	async def info_player_name_OnError(self, ctx, error):
 		if isinstance(error, commands.MissingRequiredArgument):
-			await ctx.send(f"Usage: {self.bot.command_prefix}info player name <display name>")
+			await ctx.send_help(self.info_player_name)
 			return
 		await utils.handle_command_error(ctx, error)
 
@@ -160,7 +171,7 @@ class Information(commands.Cog):
 	async def info_player_username(self, ctx, platform, *username):
 		username = " ".join(username).strip()
 		if username == "":
-			await ctx.send(f"Usage: {self.bot.command_prefix}info player username <platform> <username>")
+			await ctx.send_help(self.info_player_username)
 			return
 
 		platform = platform.casefold()
@@ -191,7 +202,7 @@ class Information(commands.Cog):
 	@info_player_username.error
 	async def info_player_username_OnError(self, ctx, error):
 		if isinstance(error, commands.MissingRequiredArgument):
-			await ctx.send(f"Usage: {self.bot.command_prefix}info player username <platform> <username>")
+			await ctx.send_help(self.info_player_username)
 			return
 		await utils.handle_command_error(ctx, error)
 
@@ -258,7 +269,7 @@ class Information(commands.Cog):
 	@info_match.error
 	async def info_match_OnError(self, ctx, error):
 		if isinstance(error, commands.MissingRequiredArgument):
-			await ctx.send(f"Usage: {self.bot.command_prefix}info match <ID>")
+			await ctx.send_help(self.info_match)
 			return
 		await utils.handle_command_error(ctx, error)
 

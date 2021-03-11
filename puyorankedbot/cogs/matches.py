@@ -20,7 +20,7 @@ class Matches(commands.Cog):
 	)
 	async def match(self, ctx):
 		if ctx.invoked_subcommand is None:
-			await ctx.send(f"Usage: {self.bot.command_prefix}match report <opponent> <your score> <opponent score>")
+			await ctx.send_help(self.match)
 
 	@match.error
 	async def match_OnError(self, ctx, error):
@@ -151,7 +151,7 @@ class Matches(commands.Cog):
 	@match_report.error
 	async def match_report_OnError(self, ctx, error):
 		if isinstance(error, commands.MissingRequiredArgument):
-			await ctx.send(f"Usage: {self.bot.command_prefix}match report <opponent> <your score> <opponent score>")
+			await ctx.send_help(self.match_report)
 			return
 		if isinstance(error, commands.errors.UserNotFound):
 			await ctx.send(f"Failed to find Discord user based on input `{error.argument}`.")

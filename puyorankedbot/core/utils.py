@@ -73,7 +73,7 @@ def get_rank_with_comparison(old_mu, old_phi, new_mu, new_phi):
 		elif new_rank == rank_null:
 			return f"**Rank lost, back to placement**"
 		else:
-			return f"**{'Promoted' if new_rank.value > old_rank.value else 'Demoted'} to {new_rank.name}**"
+			return f"**{'Promoted' if new_mu > old_mu else 'Demoted'} to {new_rank.name}**"
 
 def escape_markdown(s):
 	return re.sub(
