@@ -50,9 +50,17 @@ ranks = [
 ]
 rank_null = Rank("[In placements.]", 0x9D9D9D, -1)
 rank_threshold_mapping = [1000, 1250, 1500, 1750, 2000]
+match_goals = [5, 7, 9, 11, 13, 15]
 
 def get_rank(mu, phi=0):
 	return ranks[bisect(rank_threshold_mapping, mu)] if phi < 150 else rank_null
+
+# Convenience function to directly get the rank value without going through the rank object.
+def get_rank_value(mu, phi=0):
+	return bisect(rank_threshold_mapping, mu) if phi < 150 else -1
+
+def get_match_goal(mu1, mu2):
+	return match_goals[get_rank_value(mu1)+get_rank_value(mu2)+1 >> 1]
 
 def get_rank_with_comparison(old_mu, old_phi, new_mu, new_phi):
 	old_rank = get_rank(old_mu, old_phi)

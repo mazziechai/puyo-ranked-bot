@@ -93,6 +93,15 @@ class Matches(commands.Cog):
 
 		old_rating1 = glicko2.Rating(player1["rating_mu"], player1["rating_phi"], player1["rating_sigma"])
 		old_rating2 = glicko2.Rating(player2["rating_mu"], player2["rating_phi"], player2["rating_sigma"])
+
+		match_goal = utils.get_match_goal(old_rating1.mu, old_rating2.mu)
+		if max(score1, score2) != match_goal:
+			await ctx.send(
+				f"The match should be first to **{match_goal}** according to the current ratings of "
+				"you and your opponent."
+			)
+			return
+
 		if score1 > score2:
 			new_rating1, new_rating2 = glicko2.Glicko2().rate_1vs1(old_rating1, old_rating2)
 		else:
