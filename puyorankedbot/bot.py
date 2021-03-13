@@ -1,11 +1,6 @@
 import os
 import sqlite3
-
-from discord.ext import commands
-
-import config
 from logger import logger
-from core import scheduled_rating_update
 
 if not os.path.exists("../data.db3"):
 	logger.info("Database file not found, initializing a new one.")
@@ -14,11 +9,20 @@ if not os.path.exists("../data.db3"):
 	db.close()
 	logger.info("The database has been set up.")
 
+from discord.ext import commands
+
+import config
+from core import scheduled_rating_update
+from core import utils
+from core.match_manager import matchfinder
+
 config.create_config()
 
 token = config.get_config("token")
 bot = commands.Bot(command_prefix=config.get_config("bot_prefix"))
 bot.help_command = commands.DefaultHelpCommand(width=256)
+
+utils.bot = bot
 
 # Load command cogs.
 if __name__ == "__main__":
@@ -30,7 +34,9 @@ if __name__ == "__main__":
 @bot.event
 async def on_ready():
 	logger.info("Logged in as {}#{}".format(bot.user.name, bot.user.discriminator))
+	utils.guild = await bot.fetch_guild(config.get_config("guild_id"))
 	scheduled_rating_update.setup()
+	await matchfinder.setup()
 
 @bot.event
 async def on_command_error(ctx, error):

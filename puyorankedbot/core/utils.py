@@ -1,8 +1,17 @@
+import discord
 from logger import logger
 import traceback
 import re
 from bisect import bisect
 
+bot = None
+guild = None
+
+async def get_member(member_id):
+	try:
+		return await guild.fetch_member(member_id)
+	except discord.NotFound:
+		return None
 
 def parse_integer(s, mustNotBeNegative=False):
 	try:

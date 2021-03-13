@@ -15,7 +15,7 @@ class Update(commands.Cog):
 	@commands.group(name="update", help="Update your information.")
 	async def update(self, ctx):
 		if ctx.invoked_subcommand is None:
-			await ctx.send(f"Usage: {self.bot.command_prefix}update (displayname | username) ...")
+			await ctx.send_help(self.update)
 
 	@update.error
 	async def update_OnError(self, ctx, error):
@@ -98,7 +98,7 @@ class Update(commands.Cog):
 	@update_username.error
 	async def update_username_OnError(self, ctx, error):
 		if isinstance(error, commands.MissingRequiredArgument):
-			await ctx.send(f"Usage: {self.bot.command_prefix}update username <platform> [username]")
+			await ctx.send_help(self.update_username)
 			return
 		await utils.handle_command_error(ctx, error)
 

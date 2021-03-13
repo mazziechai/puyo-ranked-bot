@@ -37,15 +37,15 @@ def set_config(key, value):
 		raise ConfigNotFoundException("config.json is missing")
 
 def input_integer(prompt, allow_non_positive=True):
+	error_message = f"The input must be {'an' if allow_non_positive else 'a positive'} integer."
 	while True:
 		try:
-			s = input(prompt)
-			i = int(s)
+			i = int(input(prompt))
 			if allow_non_positive or i > 0:
 				return i
 		except ValueError:
 			pass
-		print("The input must be a positive integer.")
+		print(error_message)
 
 def create_config():
 	"""
@@ -61,8 +61,20 @@ def create_config():
 			data = {
 				"token": input("Bot token: "),
 				"bot_prefix": input("Bot prefix: "),
+				"guild_id": input_integer("Main server ID: ", False),
 				"rating_period_start": input_integer("Rating period 0 start point (POSIX timestamp, seconds): "),
 				"rating_period_length": input_integer("Rating period length (seconds): ", False),
-				"rating_phi_increase_rate": input_integer("Rating increase rate: ", False)
+				"rating_phi_increase_rate": input_integer("Rating increase rate: ", False),
+				"matchmaking_message_channel": input_integer("Matchmaking message receiving reactions's channel ID: ", False),
+				"matchmaking_message_id": input_integer("Matchmaking message receiving reactions's ID: ", False),
+				"matchmaking_announcement_channel": input_integer("Matchmaking announcement channel ID: ", False),
+				"matchmaking_interval": input_integer("Time between each matchmaking wave (seconds): "),
+				"matchmaking_extend_intervals": input_integer("Number of matchmaking waves before expanding a player's range: ", False),
+				"matchmaking_extend_amount": input_integer("Amount to extend a player's matchmaking range to each side: ", False),
+				"matchmaking_platforms": [
+					["pc", 0, input_integer("PC matchmaking emoji ID: ", False)],
+					["switch", 1, input_integer("Switch matchmaking emoji ID: ", False)],
+					["ps4", 2, input_integer("PlayStation 4 matchmaking emoji ID: ", False)]
+				]
 			}
 			json.dump(data, file_obj, indent='\t')

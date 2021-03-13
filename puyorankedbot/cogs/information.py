@@ -111,7 +111,7 @@ class Information(commands.Cog):
 		if player is None:
 			await ctx.send(f"The user \"{utils.escape_markdown(user.display_name)}\" isn't registered.")
 			return
-		await self.send_player_info(ctx, player, user)
+		await self.send_player_info(ctx, player, await utils.get_member(user.id))
 
 	@info_player_user.error
 	async def info_player_user_OnError(self, ctx, error):
@@ -149,12 +149,7 @@ class Information(commands.Cog):
 				f"\"{utils.escape_markdown(name)}\"."
 			)
 			return
-		user = None
-		try:
-			user = await self.bot.fetch_user(player["id"])
-		except discord.NotFound:
-			pass
-		await self.send_player_info(ctx, player, user)
+		await self.send_player_info(ctx, player, await utils.get_member(player["id"]))
 
 	@info_player_name.error
 	async def info_player_name_OnError(self, ctx, error):
@@ -192,12 +187,7 @@ class Information(commands.Cog):
 				f"\"{utils.escape_markdown(username)}\" on {utils.format_platform_name(platform)}."
 			)
 			return
-		user = None
-		try:
-			user = await self.bot.fetch_user(player["id"])
-		except discord.NotFound:
-			pass
-		await self.send_player_info(ctx, player, user)
+		await self.send_player_info(ctx, player, await utils.get_member(player["id"]))
 
 	@info_player_username.error
 	async def info_player_username_OnError(self, ctx, error):
@@ -215,10 +205,8 @@ class Information(commands.Cog):
 		).fetchone()
 		name = player_row["display_name"]
 		if name is None:
-			try:
-				name = (await self.bot.fetch_user(match[player])).display_name
-			except discord.NotFound:
-				name = "[No name.]"
+			user = await utils.get_member(match[player])
+			name = "[No name.]" if user is None else user.display_name
 		rating_change = match[player + "_rating_change"]
 		rating_change_sign = '+' if rating_change >= 0 else '\u2013'
 		embed.add_field(

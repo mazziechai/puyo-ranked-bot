@@ -11,10 +11,8 @@ class Leaderboard(commands.Cog):
 	async def get_player_name(self, player_row):
 		if player_row["display_name"] is not None:
 			return player_row["display_name"]
-		try:
-			return (await self.bot.fetch_user(player_row["id"])).display_name
-		except discord.NotFound:
-			return "[No name.]"
+		user = await utils.get_member(player_row["id"])
+		return "[No name.]" if user is None else user.display_name
 	
 	@commands.command(
 		name="leaderboard",

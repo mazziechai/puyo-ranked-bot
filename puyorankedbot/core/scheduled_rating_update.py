@@ -25,7 +25,7 @@ def update_ratings(c):
 		if len(batch) == 0: break
 		feed_out.executemany(
 			"UPDATE players SET rating_phi = ? WHERE rowid = ?",
-			[((player["rating_phi"]**2 + c)**0.5, player["rowid"]) for player in batch]
+			[(min(350, (player[1]**2 + c)**0.5), player[0]) for player in batch]
 		)
 	database.commit()
 

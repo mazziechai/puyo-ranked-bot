@@ -28,10 +28,8 @@ class Matches(commands.Cog):
 
 	async def get_player_name(self, player):
 		if player["display_name"] is None:
-			try:
-				return (await self.bot.fetch_user(player["id"])).display_name
-			except discord.NotFound:
-				return "[No name.]"
+			user = await utils.get_member(player["id"])
+			return "[No name.]" if user is None else user.display_name
 		else:
 			return player["display_name"]
 
