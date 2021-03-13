@@ -2,6 +2,7 @@ from discord.ext import commands
 
 from core import utils
 from core.database import database
+from core.match_manager import matchfinder, match_manager
 
 
 class Registration(commands.Cog):
@@ -76,6 +77,12 @@ class Registration(commands.Cog):
 		:param platform: "switch", "pc", "ps4".
 		:return: None
 		"""
+		if ctx.author.id in matchfinder.player_map:
+			await ctx.send("You are currently in the matckmaking queue. Leave the queue before unregistering.")
+			return
+		if ctx.author.id in match_manager.player_map:
+			await ctx.send("You are having a match pending. Complete the match before unregistering.")
+			return
 		platform = platform.casefold()
 		if not platform.casefold() in utils.platform_name_mapping:
 			await ctx.send(

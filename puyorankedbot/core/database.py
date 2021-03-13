@@ -5,6 +5,11 @@ sqlite3.register_converter(
 	lambda s: datetime.datetime.strptime(s.decode("ascii"), "%Y-%m-%d %H:%M:%S")
 )
 
+sqlite3.register_adapter(
+	datetime.datetime,
+	lambda d: d.strftime("%Y-%m-%d %H:%M:%S")
+)
+
 class Row:
 	"""
 	A converted database row for easy access of the values through different ways.

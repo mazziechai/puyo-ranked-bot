@@ -62,19 +62,18 @@ def create_config():
 				"token": input("Bot token: "),
 				"bot_prefix": input("Bot prefix: "),
 				"guild_id": input_integer("Main server ID: ", False),
+				"command_channel": input_integer("Main command channel: ", False),
 				"rating_period_start": input_integer("Rating period 0 start point (POSIX timestamp, seconds): "),
 				"rating_period_length": input_integer("Rating period length (seconds): ", False),
 				"rating_phi_increase_rate": input_integer("Rating increase rate: ", False),
 				"matchmaking_message_channel": input_integer("Matchmaking message receiving reactions's channel ID: ", False),
 				"matchmaking_message_id": input_integer("Matchmaking message receiving reactions's ID: ", False),
 				"matchmaking_announcement_channel": input_integer("Matchmaking announcement channel ID: ", False),
-				"matchmaking_interval": input_integer("Time between each matchmaking wave (seconds): "),
-				"matchmaking_extend_intervals": input_integer("Number of matchmaking waves before expanding a player's range: ", False),
-				"matchmaking_extend_amount": input_integer("Amount to extend a player's matchmaking range to each side: ", False),
 				"matchmaking_platforms": [
 					["pc", 0, input_integer("PC matchmaking emoji ID: ", False)],
 					["switch", 1, input_integer("Switch matchmaking emoji ID: ", False)],
 					["ps4", 2, input_integer("PlayStation 4 matchmaking emoji ID: ", False)]
-				]
+				],
+				"pending_match_lifetime": input_integer("Time limit to finish a match (seconds): ")
 			}
 			json.dump(data, file_obj, indent='\t')

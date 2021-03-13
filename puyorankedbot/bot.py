@@ -14,7 +14,7 @@ from discord.ext import commands
 import config
 from core import scheduled_rating_update
 from core import utils
-from core.match_manager import matchfinder
+from core.match_manager import matchfinder, match_manager
 
 config.create_config()
 
@@ -37,6 +37,7 @@ async def on_ready():
 	utils.guild = await bot.fetch_guild(config.get_config("guild_id"))
 	scheduled_rating_update.setup()
 	await matchfinder.setup()
+	match_manager.setup()
 
 @bot.event
 async def on_command_error(ctx, error):
