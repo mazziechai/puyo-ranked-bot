@@ -41,6 +41,8 @@ class Leaderboard(commands.Cog):
 
 	@leaderboard.error
 	async def leaderboard_OnError(self, ctx, error):
+		if isinstance(error, commands.CheckFailure):
+			return
 		await utils.handle_command_error(ctx, error)
 
 def setup(bot):

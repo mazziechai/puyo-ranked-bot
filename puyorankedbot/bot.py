@@ -23,6 +23,7 @@ bot = commands.Bot(command_prefix=config.get_config("bot_prefix"))
 bot.help_command = commands.DefaultHelpCommand(width=256)
 
 utils.bot = bot
+command_channel_id = config.get_config("command_channel")
 
 # Load command cogs.
 if __name__ == "__main__":
@@ -38,6 +39,10 @@ async def on_ready():
 	scheduled_rating_update.setup()
 	await matchfinder.setup()
 	match_manager.setup()
+
+@bot.check
+async def command_check(ctx):
+	return ctx.channel.id == command_channel_id
 
 @bot.event
 async def on_command_error(ctx, error):

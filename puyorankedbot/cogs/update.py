@@ -19,6 +19,8 @@ class Update(commands.Cog):
 
 	@update.error
 	async def update_OnError(self, ctx, error):
+		if isinstance(error, commands.CheckFailure):
+			return
 		await utils.handle_command_error(ctx, error)
 
 	@update.command(

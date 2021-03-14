@@ -43,7 +43,7 @@ class Player:
 		username = self.usernames[pool]
 		return (
 			f"<@!{self.player_id}>" +
-			(f"" if username is None else f" ({utils.escape_markdown(username)})")
+			("" if username is None else f" ({utils.escape_markdown(username)})")
 		)
 
 	def trigger_resolve(self):
@@ -63,9 +63,10 @@ class Node:
 		self.value = value
 
 	def __lt__(self, that):
-		return (self.start and not that.start) \
-			if self.value == that.value \
-			else self.value < that.value
+		return (
+			self.value < that.value or
+			(self.value == that.value and self.start and not that.start)
+		)
 
 class Matchfinder:
 	def __init__(self):
@@ -237,6 +238,8 @@ class PendingMatch:
 		self.player1_score = None
 		self.player2_score = None
 		self.confirming_timestamp = None
+		self.confirm_status = 0
+		self.cancel_status = 0
 	
 	def save(self):
 		database.execute(
@@ -330,25 +333,6 @@ class MatchManager:
 				if user.id == player1: result |= 2
 				elif user.id == player2: result |= 1
 		return result
-
-	async def process_player(self, player, flag, embed):
-		old_rating = glicko2.Rating(
-			player["rating_mu"], player["rating_phi"], player["rating_sigma"]
-		)
-		new_rating = old_rating if flag != 0 else \
-			glicko2.Glicko2().rate_1vs1(old_rating, old_rating)[1]
-		database.execute(
-			"UPDATE players "
-			"SET rating_mu = ?, rating_phi = ?, rating_sigma = ? "
-			"WHERE id = ?",
-			(new_rating.mu, new_rating.phi, new_rating.sigma, player["id"])
-		)
-		database.commit()
-		await match_message_helper.add_report_field(
-			embed, player, None,
-			old_rating.mu, old_rating.phi,
-			new_rating.mu, new_rating.phi
-		)
 	
 	async def process_match_complete(self, match):
 		player1 = match.player1_data
@@ -410,15 +394,35 @@ class MatchManager:
 		)
 		embed.set_footer(text=f"Match ID: {cursor.lastrowid}")
 		await self.output_channel.send(embed=embed)
+		await self.cleanup_for_match(match)
+
+	async def process_player(self, player, flag, embed):
+		old_rating = glicko2.Rating(
+			player["rating_mu"], player["rating_phi"], player["rating_sigma"]
+		)
+		new_rating = old_rating if flag != 0 else \
+			glicko2.Glicko2().rate_1vs1(old_rating, old_rating)[1]
+		database.execute(
+			"UPDATE players "
+			"SET rating_mu = ?, rating_phi = ?, rating_sigma = ? "
+			"WHERE id = ?",
+			(new_rating.mu, new_rating.phi, new_rating.sigma, player["id"])
+		)
+		database.commit()
+		await match_message_helper.add_report_field(
+			embed, player, None,
+			old_rating.mu, old_rating.phi,
+			new_rating.mu, new_rating.phi
+		)
 	
 	match_timeout_messages = [
-		"Both <@!%(player1)s> and <@!(player2)s> "
+		"Both <@!%(player1)s> and <@!%(player2)s> "
 		"did not confirm nor play the match.",
 		"<@!%(player2)s> could play but "
 		"<@!%(player1)s> did not respond.",
 		"<@!%(player1)s> could play but "
 		"<@!%(player2)s> did not respond.",
-		"Both <@!%(player1)s> and <@!(player2)s> "
+		"Both <@!%(player1)s> and <@!%(player2)s> "
 		"confirmed to play the match but did not actually play."
 	]
 
@@ -431,8 +435,8 @@ class MatchManager:
 			title="Match timeout",
 			color=0xFF0000
 		)
-		if sides == 3:
-			sides = 0
+		if sides == 0:
+			sides = 3
 		await self.process_player(match.player1_data, sides & 2, embed)
 		await self.process_player(match.player2_data, sides & 1, embed)
 		await self.output_channel.send(
@@ -442,6 +446,7 @@ class MatchManager:
 			},
 			embed=embed
 		)
+		await self.cleanup_for_match(match)
 
 	async def clear_matches(self):
 		while True:
@@ -450,7 +455,6 @@ class MatchManager:
 				match = self.pending_matches[0]
 				if time - match.timestamp >= self.match_lifetime:
 					await self.process_match_timeout(match)
-					await self.cleanup_for_match(match)
 					self.pending_matches.pop(0)
 				else:
 					break
@@ -458,7 +462,6 @@ class MatchManager:
 				match = self.confirming_matches[0]
 				if time - match.confirming_timestamp >= 180:
 					await self.process_match_complete(match)
-					await self.cleanup_for_match(match)
 					self.confirming_matches.pop(0)
 				else:
 					break

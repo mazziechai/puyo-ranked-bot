@@ -61,17 +61,6 @@ class Information(commands.Cog):
 				{"id": player["id"]}
 			).fetchone()[0]
 		)
-		if ctx.author.id != player["id"]:
-			command_user_row = database.execute(
-				"SELECT rating_mu FROM players WHERE id=? AND platforms <> ''",
-				(ctx.author.id,)
-			).fetchone()
-			if command_user_row is not None:
-				match_goal = utils.get_match_goal(player["rating_mu"], command_user_row[0]) 
-				embed.add_field(
-					name="If you battle",
-					value=f"First to **{match_goal}**"
-				)
 		await ctx.send(embed=embed)
 
 	# Groupings, these don't do anything on their own.
@@ -82,6 +71,8 @@ class Information(commands.Cog):
 
 	@info.error
 	async def info_OnError(self, ctx, error):
+		if isinstance(error, commands.CheckFailure):
+			return
 		await utils.handle_command_error(ctx, error)
 
 	# info player

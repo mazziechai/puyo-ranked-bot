@@ -68,6 +68,8 @@ class Registration(commands.Cog):
 
 	@register.error
 	async def register_OnError(self, ctx, error):
+		if isinstance(error, commands.CheckFailure):
+			return
 		if isinstance(error, commands.MissingRequiredArgument):
 			await ctx.send_help(self.register)
 		else:
