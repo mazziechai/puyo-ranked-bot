@@ -27,6 +27,11 @@ class Player:
 		self.low = Node(True, self, self.mu - 2*self.phi)
 		self.high = Node(False, self, self.mu + 2*self.phi)
 		self.platforms = set(data["platforms"].split())
+		self.usernames = [
+			data["username_pc"],
+			data["username_switch"],
+			data["username_ps4"]
+		]
 		self.resolved = False
 		self.platform_count = 0
 		self.intervals = 0
@@ -34,7 +39,15 @@ class Player:
 	def get_nodes(self):
 		return (self.low, self.high)
 
+	def get_ping(self, pool):
+		username = self.usernames[pool]
+		return (
+			f"<@!{self.player_id}>" +
+			(f"" if username is None else f" ({utils.escape_markdown(username)})")
+		)
+
 	def trigger_resolve(self):
+		if self.resolved: return
 		self.matchfinder.mark_player_done(self.player_id)
 		self.resolved = True
 
@@ -113,8 +126,7 @@ class Matchfinder:
 				player = self.player_map[data.user_id]
 			else:
 				player_data = database.execute(
-					"SELECT id, platforms, rating_mu, rating_phi FROM players "
-					"WHERE id = ? AND platforms <> ''",
+					"SELECT * FROM players WHERE id = ? AND platforms <> ''",
 					(data.user_id,)
 				).fetchone()
 				if player_data is None:
@@ -165,10 +177,7 @@ class Matchfinder:
 				else:
 					current_player.trigger_resolve()
 					node.player.trigger_resolve()
-					matches.append((
-						current_player, node.player,
-						utils.platform_names[pool]
-					))
+					matches.append((current_player, node.player, pool))
 					current_player = None
 			else:
 				current_player = None
@@ -177,7 +186,7 @@ class Matchfinder:
 	async def cleanup_players(self):
 		for player_id in self.done_players:
 			if player_id in self.player_map:
-				player = self.player_map[player_id]
+				player = self.player_map.pop(player_id)
 				member = await utils.get_member(player_id)
 				for i in range(3):
 					pool = self.pools[i]
@@ -188,7 +197,6 @@ class Matchfinder:
 							member
 						)
 						pool.discard(player)
-				self.player_map.pop(player_id)
 		self.done_players.clear()
 
 	async def find_matches(self):
@@ -197,9 +205,9 @@ class Matchfinder:
 			self.populate_matches(matches, i)
 		for match_data in matches:
 			message = await self.announcement_channel.send(
-				f"<@!{match_data[0].player_id}> vs. "
-				f"<@!{match_data[1].player_id}> | "
-				f"{match_data[2]} | First to **" +
+				f"{match_data[0].get_ping(match_data[2])} vs. "
+				f"{match_data[1].get_ping(match_data[2])} | "
+				f"{utils.platform_names[match_data[2]]} | First to **" +
 				f"{utils.get_match_goal(match_data[0].mu, match_data[1].mu)}"
 				"**"
 			)
