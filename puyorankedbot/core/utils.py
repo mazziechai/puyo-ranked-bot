@@ -49,7 +49,7 @@ class Rank:
 		self.name = name
 		self.color = color
 		self.value = value
-		self.role = config.get_config("rank_roles")[value][2]
+		self.role = config.get_config("rank_roles")[name.lower()]
 
 
 ranks = [
@@ -60,7 +60,7 @@ ranks = [
 	Rank("Diamond", 0x7EDEF3, 4),
 	Rank("Legend", 0xFF6060, 5)
 ]
-rank_null = Rank("[In placements.]", 0x9D9D9D, -1)
+rank_null = Rank("Placements", 0x9D9D9D, -1)
 rank_threshold_mapping = [500, 1000, 1500, 2000, 2500]
 match_goals = [5, 7, 9, 11, 13, 15]
 

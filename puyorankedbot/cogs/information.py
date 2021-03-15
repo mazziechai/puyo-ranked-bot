@@ -26,7 +26,7 @@ class Information(commands.Cog):
 
 		embed = discord.Embed(
 			type="rich",
-			title="**Puyo Training Grounds** player info",
+			title="Puyo Training Grounds player info",
 			description=
 			("" if user is None else f"{user.name}#{user.discriminator}")
 			+ f"\nID {player['id']}",

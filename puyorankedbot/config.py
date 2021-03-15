@@ -75,14 +75,14 @@ def create_config():
 					["ps4", 2, input_integer("PlayStation 4 matchmaking emoji ID: ", False)]
 				],
 				"pending_match_lifetime": input_integer("Time limit to finish a match (seconds): "),
-				"rank_roles": [
-					["Bronze", 0, input_integer("Bronze rank role ID: ", False)],
-					["Silver", 1, input_integer("Silver rank role ID: ", False)],
-					["Gold", 2, input_integer("Gold rank role ID: ", False)],
-					["Platinum", 3, input_integer("Platinum rank role ID: ", False)],
-					["Diamond", 4, input_integer("Diamond rank role ID: ", False)],
-					["Legend", 4, input_integer("Legend rank role ID: ", False)],
-					["[In placements.]", -1, input_integer("Placements rank role ID: ", False)]
-				]
+				"rank_roles": {
+					"bronze": input_integer("Bronze rank role ID: ", False),
+					"silver": input_integer("Silver rank role ID: ", False),
+					"gold": input_integer("Gold rank role ID: ", False),
+					"platinum": input_integer("Platinum rank role ID: ", False),
+					"diamond": input_integer("Diamond rank role ID: ", False),
+					"legend": input_integer("Legend rank role ID: ", False),
+					"placements": input_integer("Placements rank role ID: ", False)
+				}
 			}
 			json.dump(data, file_obj, indent='\t')
