@@ -38,7 +38,10 @@ class Registration(commands.Cog):
 
 		platform_names = ", ".join(utils.format_platform_name(platform) for platform in platforms)
 			
-		player = database.execute("SELECT platforms FROM players WHERE id = ?", (ctx.author.id,)).fetchone()
+		player = database.execute(
+			"SELECT platforms, rating_mu, rating_phi FROM players WHERE id = ?",
+			(ctx.author.id,)
+		).fetchone()
 		if player is None:
 			# First time registering.
 			database.execute(
@@ -46,6 +49,7 @@ class Registration(commands.Cog):
 				(ctx.author.id, " ".join(platforms))
 			)
 			database.commit()
+			await utils.update_role(ctx.author.id, None, None, 1500, 350)
 			await ctx.send(f"Signed up for {platform_names}.")
 		else:
 			# Already registered.
@@ -64,6 +68,7 @@ class Registration(commands.Cog):
 					(" ".join(player_platforms), ctx.author.id)
 				)
 				database.commit()
+				await utils.update_role(ctx.author.id, None, None, player["rating_mu"], player["rating_phi"])
 				await ctx.send(f"Signed up for {platform_names}.")
 
 	@register.error
@@ -99,7 +104,7 @@ class Registration(commands.Cog):
 		platform_names = ", ".join(utils.format_platform_name(platform) for platform in platforms)
 
 		player = database.execute(
-			"SELECT platforms FROM players WHERE id = ? AND platforms <> ''",
+			"SELECT platforms, rating_mu, rating_phi FROM players WHERE id = ? AND platforms <> ''",
 			(ctx.author.id,)
 		).fetchone()
 		if player is None:
@@ -112,6 +117,7 @@ class Registration(commands.Cog):
 			)
 			if len(new_player_platforms) != len(old_player_platforms):
 				platform_nullify = ", ".join(f"username_{platform} = NULL" for platform in platforms)
+				zenkeshita = nuke or len(new_player_platforms) == 0
 				database.execute(
 					"""
 					UPDATE players SET
@@ -122,7 +128,7 @@ class Registration(commands.Cog):
 						username_ps4 = NULL
 					WHERE id = :id
 					"""
-					if nuke or len(new_player_platforms) == 0 else
+					if zenkeshita else
 					f"UPDATE players SET platforms = :platforms, {platform_nullify} WHERE id = :id",
 					{"platforms": " ".join(new_player_platforms), "id": ctx.author.id}
 				)
@@ -133,6 +139,8 @@ class Registration(commands.Cog):
 					f"Unregistered from {platform_names}." +
 					(" __You are no longer in the system.__" if len(new_player_platforms) == 0 else "")
 				)
+				if zenkeshita:
+					await utils.update_role(ctx.author.id, player["rating_mu"], player["rating_phi"], None, None)
 			else:
 				await ctx.send(f"You are not signed up for {platform_names}.")
 

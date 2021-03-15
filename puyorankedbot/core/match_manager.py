@@ -395,23 +395,16 @@ class MatchManager:
 		embed.set_footer(text=f"Match ID: {cursor.lastrowid}")
 		await self.output_channel.send(embed=embed)
 
-		old_rank1 = utils.get_rank(old_rating1.mu, old_rating1.phi)
-		old_rank2 = utils.get_rank(old_rating2.mu, old_rating2.phi)
-		new_rank1 = utils.get_rank(new_rating1.mu, new_rating1.phi)
-		new_rank2 = utils.get_rank(new_rating2.mu, new_rating2.phi)
-		guild = utils.bot.get_guild(get_config("guild_id"))
-		member1 = guild.get_member(player1["id"])
-		member2 = guild.get_member(player2["id"])
-
-		if old_rank1 != new_rank1:
-			if old_rank1.value != -1:
-				await member1.remove_roles(guild.get_role(old_rank1.role))
-			await member1.add_roles(guild.get_role(new_rank1.role))
-
-		if old_rank2 != new_rank2:
-			if old_rank2.value != -1:
-				await member2.remove_roles(guild.get_role(old_rank2.role))
-			await member2.add_roles(guild.get_role(new_rank2.role))
+		await utils.update_role(
+			match.player1,
+			old_rating1.mu, old_rating1.phi,
+			new_rating1.mu, new_rating1.phi
+		)
+		await utils.update_role(
+			match.player2,
+			old_rating2.mu, old_rating2.phi,
+			new_rating2.mu, new_rating2.phi
+		)
 
 		await self.cleanup_for_match(match)
 

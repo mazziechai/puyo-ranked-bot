@@ -20,9 +20,7 @@ from core.match_manager import matchfinder, match_manager
 
 
 token = config.get_config("token")
-intents = discord.Intents.default()
-intents.members = True
-bot = commands.Bot(command_prefix=config.get_config("bot_prefix"), intents=intents)
+bot = commands.Bot(command_prefix=config.get_config("bot_prefix"))
 bot.help_command = commands.DefaultHelpCommand(width=256)
 
 utils.bot = bot

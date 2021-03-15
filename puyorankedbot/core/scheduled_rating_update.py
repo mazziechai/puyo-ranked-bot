@@ -8,6 +8,7 @@ from datetime import datetime
 from logger import logger
 from config import get_config
 from core.database import database
+from core import utils
 
 running = False
 
@@ -17,15 +18,22 @@ def setup():
 	asyncio.create_task(update_loop())
 	running = True
 
-def update_ratings(c):
-	feed_in = database.execute("SELECT rowid, rating_phi FROM players")
+async def update_ratings(c):
+	feed_in = database.execute("SELECT rowid, id, rating_mu, rating_phi FROM players")
 	feed_out = database.cursor()
 	while True:
 		batch = feed_in.fetchmany(1024)
 		if len(batch) == 0: break
+		data_load = []
+		for player in batch:
+			mu = player[2]
+			old_phi = player[3]
+			new_phi = min(350, (old_phi**2 + c)**0.5)
+			await utils.update_role(player[1], mu, old_phi, mu, new_phi)
+			data_load.append((new_phi, player[0]))
 		feed_out.executemany(
 			"UPDATE players SET rating_phi = ? WHERE rowid = ?",
-			[(min(350, (player[1]**2 + c)**0.5), player[0]) for player in batch]
+			data_load
 		)
 	database.commit()
 
@@ -49,7 +57,7 @@ async def update_loop():
 			period_info["period"] = period
 			save_period_info(period_info)
 		elif period_info["period"] != period:
-			update_ratings((period - period_info["period"]) * c)
+			await update_ratings((period - period_info["period"]) * c)
 			period_info["period"] = period
 			save_period_info(period_info)
 	else:
@@ -64,7 +72,7 @@ async def update_loop():
 	next_update = start + (period+1)*length
 	while True:
 		await asyncio.sleep(next_update - int(datetime.now().timestamp()))
-		update_ratings(c)
+		await update_ratings(c)
 		period += 1
 		period_info["period"] = period
 		save_period_info(period_info)

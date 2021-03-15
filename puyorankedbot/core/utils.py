@@ -49,8 +49,7 @@ class Rank:
 		self.name = name
 		self.color = color
 		self.value = value
-		self.role = config.get_config("rank_roles")[name.lower()]
-
+		self.role_id = config.get_config("rank_roles")[name.lower()]
 
 ranks = [
 	Rank("Bronze", 0xE7A264, 0),
@@ -65,7 +64,10 @@ rank_threshold_mapping = [500, 1000, 1500, 2000, 2500]
 match_goals = [5, 7, 9, 11, 13, 15]
 
 def get_rank(mu, phi=0):
-	return ranks[bisect(rank_threshold_mapping, mu)] if phi < 150 else rank_null
+	return (
+		None if mu is None else
+		ranks[bisect(rank_threshold_mapping, mu)] if phi < 150 else rank_null
+	)
 
 # Convenience function to directly get the rank value without going through the rank object.
 def get_rank_value(mu, phi=0):
@@ -86,6 +88,18 @@ def get_rank_with_comparison(old_mu, old_phi, new_mu, new_phi):
 			return f"**Rank lost, back to placement**"
 		else:
 			return f"**{'Promoted' if new_mu > old_mu else 'Demoted'} to {new_rank.name}**"
+
+async def update_role(member_id, old_mu, old_phi, new_mu, new_phi):
+	if member is None: return
+	old_rank = get_rank(old_mu, old_phi)
+	new_rank = get_rank(new_mu, new_phi)
+	if old_rank == new_rank: return
+	member = await get_member(member_id)
+	if old_mu is not None:
+		await member.remove_roles(discord.Object(old_rank.role_id))
+	if new_mu is not None:
+		await member.add_roles(discord.Object(new_rank.role_id))
+
 
 def escape_markdown(s):
 	return re.sub(
