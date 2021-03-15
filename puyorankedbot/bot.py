@@ -1,6 +1,7 @@
 import os
 import sqlite3
 from logger import logger
+import config
 
 if not os.path.exists("../data.db3"):
 	logger.info("Database file not found, initializing a new one.")
@@ -9,17 +10,19 @@ if not os.path.exists("../data.db3"):
 	db.close()
 	logger.info("The database has been set up.")
 
-from discord.ext import commands
+config.create_config()
 
-import config
+import discord
+from discord.ext import commands
 from core import scheduled_rating_update
 from core import utils
 from core.match_manager import matchfinder, match_manager
 
-config.create_config()
 
 token = config.get_config("token")
-bot = commands.Bot(command_prefix=config.get_config("bot_prefix"))
+intents = discord.Intents.default()
+intents.members = True
+bot = commands.Bot(command_prefix=config.get_config("bot_prefix"), intents=intents)
 bot.help_command = commands.DefaultHelpCommand(width=256)
 
 utils.bot = bot

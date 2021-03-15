@@ -3,8 +3,6 @@ from discord.ext import commands
 from datetime import datetime
 
 from core import utils
-from core.database import database
-from core.glicko2 import glicko2
 from core import match_message_helper
 from core.match_manager import match_manager
 
@@ -38,7 +36,7 @@ class Matches(commands.Cog):
 	)
 	async def match_report(self, ctx, score1s, score2s):
 		if ctx.author.id not in match_manager.player_map:
-			await ctx.send("You are not having a match pending.")
+			await ctx.send("You do not have a match pending.")
 			return
 
 		try:
@@ -48,7 +46,7 @@ class Matches(commands.Cog):
 			await ctx.send(str(e))
 			return
 		if score1 == score2:
-			await ctx.send("The scores are equal. There gotta be a winner.")
+			await ctx.send("The scores are equal. There's gotta be a winner.")
 
 		data = match_manager.player_map[ctx.author.id]
 		match = data[0]
@@ -122,7 +120,7 @@ class Matches(commands.Cog):
 	)
 	async def match_cancel(self, ctx):
 		if ctx.author.id not in match_manager.player_map:
-			await ctx.send("You are not having a match pending.")
+			await ctx.send("You do not have a match pending.")
 			return
 		data = match_manager.player_map[ctx.author.id]
 		match = data[0]

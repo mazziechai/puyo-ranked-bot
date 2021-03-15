@@ -85,7 +85,7 @@ class Registration(commands.Cog):
 			await ctx.send("You are currently in the matckmaking queue. Leave the queue before unregistering.")
 			return
 		if ctx.author.id in match_manager.player_map:
-			await ctx.send("You are having a match pending. Complete the match before unregistering.")
+			await ctx.send("You have a match pending. Complete the match before unregistering.")
 			return
 
 		nuke = len(platforms_raw) != 0 and platforms_raw[0].casefold() == "all"

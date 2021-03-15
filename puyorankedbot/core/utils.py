@@ -3,6 +3,7 @@ from logger import logger
 import traceback
 import re
 from bisect import bisect
+import config
 
 bot = None
 guild = None
@@ -48,6 +49,8 @@ class Rank:
 		self.name = name
 		self.color = color
 		self.value = value
+		self.role = config.get_config("rank_roles")[value][2]
+
 
 ranks = [
 	Rank("Bronze", 0xE7A264, 0),
@@ -58,7 +61,7 @@ ranks = [
 	Rank("Legend", 0xFF6060, 5)
 ]
 rank_null = Rank("[In placements.]", 0x9D9D9D, -1)
-rank_threshold_mapping = [1000, 1250, 1500, 1750, 2000]
+rank_threshold_mapping = [500, 1000, 1500, 2000, 2500]
 match_goals = [5, 7, 9, 11, 13, 15]
 
 def get_rank(mu, phi=0):
