@@ -90,11 +90,11 @@ def get_rank_with_comparison(old_mu, old_phi, new_mu, new_phi):
 			return f"**{'Promoted' if new_mu > old_mu else 'Demoted'} to {new_rank.name}**"
 
 async def update_role(member_id, old_mu, old_phi, new_mu, new_phi):
-	if member is None: return
 	old_rank = get_rank(old_mu, old_phi)
 	new_rank = get_rank(new_mu, new_phi)
 	if old_rank == new_rank: return
 	member = await get_member(member_id)
+	if member is None: return
 	if old_mu is not None:
 		await member.remove_roles(discord.Object(old_rank.role_id))
 	if new_mu is not None:
