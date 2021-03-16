@@ -1,9 +1,10 @@
 import discord
 from discord.ext import commands
+from datetime import datetime
 
 from core import utils
-from core.database import database
-from core.glicko2 import glicko2
+from core import match_message_helper
+from core.match_manager import match_manager
 
 
 class Matches(commands.Cog):
@@ -20,61 +21,22 @@ class Matches(commands.Cog):
 	)
 	async def match(self, ctx):
 		if ctx.invoked_subcommand is None:
-			await ctx.send(f"Usage: {self.bot.command_prefix}match report <opponent> <your score> <opponent score>")
+			await ctx.send_help(self.match)
 
 	@match.error
 	async def match_OnError(self, ctx, error):
+		if isinstance(error, commands.CheckFailure):
+			return
 		await utils.handle_command_error(ctx, error)
-
-	async def get_player_name(self, player):
-		if player["display_name"] is None:
-			try:
-				return (await self.bot.fetch_user(player["id"])).display_name
-			except discord.NotFound:
-				return "[No name.]"
-		else:
-			return player["display_name"]
-
-	async def add_report_field(self, embed, player, score, old_mu, new_mu, new_phi):
-		d = new_mu - old_mu
-		embed.add_field(
-			name=utils.escape_markdown(await self.get_player_name(player)),
-			value=f"**{score}**\n{int(new_mu)} \u00B1 {int(2 * new_phi)}\n" +
-				  ('+' if d >= 0 else '\u2013') + f" {int(abs(d))}"
-		)
-
-	@classmethod
-	def get_player_by_ID(cls, id_in):
-		return database.execute(
-			"SELECT id, display_name, rating_mu, rating_phi, rating_sigma "
-			"FROM players WHERE id=? AND platforms<>''",
-			(id_in,)
-		).fetchone()
 
 	@match.command(
 		name="report",
-		usage="<opponent> <your score> <opponent score>",
-		help="Report a match to the system."
+		usage="<your score> <opponent score>",
+		help="Report your current match's result to the system."
 	)
-	async def match_report(self, ctx, user: discord.User, score1s, score2s):
-		"""
-		Reports a match to the system, calculates the ratings, and sends them as a message.
-		:param ctx: Context, comes with every command
-		:param user: A user, which could be a mention, an ID, or anything else Discord can translate into a user.
-		:param score1s: Score of player 1
-		:param score2s: Score of player 2
-		:return:
-		"""
-		if ctx.author.id == user.id:
-			await ctx.send("You can't report a fight with yourself.")
-			return
-		player1 = self.get_player_by_ID(ctx.author.id)
-		if player1 is None:
-			await ctx.send("You are not registered yet.")
-			return
-		player2 = self.get_player_by_ID(user.id)
-		if player2 is None:
-			await ctx.send("The opponent user is not yet registered.")
+	async def match_report(self, ctx, score1s, score2s):
+		if ctx.author.id not in match_manager.player_map:
+			await ctx.send("You do not have a match pending.")
 			return
 
 		try:
@@ -84,56 +46,106 @@ class Matches(commands.Cog):
 			await ctx.send(str(e))
 			return
 		if score1 == score2:
-			await ctx.send("The scores are equal. There gotta be a winner.")
+			await ctx.send("The scores are equal. There's gotta be a winner.")
 
-		old_rating1 = glicko2.Rating(player1["rating_mu"], player1["rating_phi"], player1["rating_sigma"])
-		old_rating2 = glicko2.Rating(player2["rating_mu"], player2["rating_phi"], player2["rating_sigma"])
-		if score1 > score2:
-			new_rating1, new_rating2 = glicko2.Glicko2().rate_1vs1(old_rating1, old_rating2)
-		else:
-			new_rating2, new_rating1 = glicko2.Glicko2().rate_1vs1(old_rating2, old_rating1)
+		data = match_manager.player_map[ctx.author.id]
+		match = data[0]
+		if data[1]:
+			score1, score2 = score2, score1
 
-		cursor = database.execute("""
-			INSERT INTO matches (
-				player1, player2, player1_score, player2_score,
-				player1_old_mu, player1_old_phi, player1_old_sigma,
-				player1_new_mu, player1_new_phi, player1_new_sigma,
-				player2_old_mu, player2_old_phi, player2_old_sigma,
-				player2_new_mu, player2_new_phi, player2_new_sigma
-			) VALUES (
-				?, ?, ?, ?,
-				?, ?, ?,
-				?, ?, ?,
-				?, ?, ?,
-				?, ?, ?
+		if max(score1, score2) != match.goal:
+			await ctx.send(
+				f"The match should be first to **{match.goal}** "
+				"according to the current ratings of you and your opponent."
 			)
-		""", (
-			player1["id"], player2["id"], score1, score2,
-			old_rating1.mu, old_rating1.phi, old_rating1.sigma,
-			new_rating1.mu, new_rating1.phi, new_rating1.sigma,
-			old_rating2.mu, old_rating2.phi, old_rating2.sigma,
-			new_rating2.mu, new_rating2.phi, new_rating2.sigma
-		))
-		database.commit()
+			return
 
-		embed = discord.Embed(
-			type="rich",
-			title="Match recorded",
-			color=0xFFBE37
-		)
-		await self.add_report_field(embed, player1, score1, old_rating1.mu, new_rating1.mu, new_rating1.phi)
-		await self.add_report_field(embed, player2, score2, old_rating2.mu, new_rating2.mu, new_rating2.phi)
-		embed.set_footer(text=f"Match ID: {cursor.lastrowid}")
-		await ctx.send(embed=embed)
+		if (match.player1_score, match.player2_score) == (score1, score2):
+			new_status = match.confirm_status | (1 if data[1] else 2)
+			if new_status == match.confirm_status:
+				await ctx.send("Nothing changed, the scores are still the same.")
+				return
+			else:
+				match.confirm_status == new_status
+				if new_status == 3:
+					await match_manager.process_match_complete(match)
+					match_manager.confirming_matches.remove(match)
+		else:
+			match.player1_score = score1
+			match.player2_score = score2
+
+			if match.confirming_timestamp is None:
+				match_manager.pending_matches.remove(match)
+			else:
+				match_manager.confirming_matches.remove(match)
+			match_manager.confirming_matches.append(match)
+			match.confirming_timestamp = datetime.now().timestamp()
+			match.confirm_status = 1 if data[1] else 2
+
+			embed = discord.Embed(
+				type="rich",
+				title="Match waiting confirmation",
+				color=0xE39A00
+			)
+			embed.add_field(
+				name=await match_message_helper.get_player_name(match.player1_data),
+				value=match.player1_score
+			)
+			embed.add_field(
+				name=await match_message_helper.get_player_name(match.player2_data),
+				value=match.player2_score
+			)
+			await ctx.send(
+				"If the following scores don't look right, "
+				f"<@!{match.player1}> and <@!{match.player2}> can resubmit "
+				"within 3 minutes. "
+				f"<@!{match.player1 if data[1] else match.player2}> "
+				"can submit the same score to immediately confirm the match.",
+				embed=embed
+			)
 
 	@match_report.error
 	async def match_report_OnError(self, ctx, error):
 		if isinstance(error, commands.MissingRequiredArgument):
-			await ctx.send(f"Usage: {self.bot.command_prefix}match report <opponent> <your score> <opponent score>")
+			await ctx.send_help(self.match_report)
 			return
 		if isinstance(error, commands.errors.UserNotFound):
 			await ctx.send(f"Failed to find Discord user based on input `{error.argument}`.")
 			return
+		await utils.handle_command_error(ctx, error)
+	
+	@match.command(
+		name="cancel",
+		help="Request cancelling the current match."
+	)
+	async def match_cancel(self, ctx):
+		if ctx.author.id not in match_manager.player_map:
+			await ctx.send("You do not have a match pending.")
+			return
+		data = match_manager.player_map[ctx.author.id]
+		match = data[0]
+		if match.confirming_timestamp is not None:
+			await ctx.send("Cannot cancel the match since scores are already submitted.")
+			return
+		new_status = match.cancel_status | (1 if data[1] else 2)
+		if new_status == match.cancel_status:
+			await ctx.send("You have already requested cancelling the current match.")
+			return
+		else:
+			if new_status == 3:
+				await match_manager.cleanup_for_match(match)
+				match_manager.pending_matches.remove(match)
+				await ctx.send("The match has been cancelled.")
+			else:
+				match.cancel_status = new_status
+				await ctx.send(
+					f"<@!{ctx.author.id}> is requesting the match be cancelled. "
+					f"<@!{match.player1 if data[1] else match.player2}> can use "
+					f"`{utils.bot.command_prefix}match cancel` to confirm."
+				)
+
+	@match_cancel.error
+	async def match_cancel_OnError(self, ctx, error):
 		await utils.handle_command_error(ctx, error)
 
 

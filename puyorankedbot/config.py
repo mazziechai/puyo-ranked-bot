@@ -36,6 +36,16 @@ def set_config(key, value):
 	else:
 		raise ConfigNotFoundException("config.json is missing")
 
+def input_integer(prompt, allow_non_positive=True):
+	error_message = f"The input must be {'an' if allow_non_positive else 'a positive'} integer."
+	while True:
+		try:
+			i = int(input(prompt))
+			if allow_non_positive or i > 0:
+				return i
+		except ValueError:
+			pass
+		print(error_message)
 
 def create_config():
 	"""
@@ -48,10 +58,31 @@ def create_config():
 	else:
 		with open("../config.json", "w") as file_obj:
 			print("Configuration file not found, supply the following:")
-			token = input("Bot token: ")
-			bot_prefix = input("Bot prefix: ")
 			data = {
-				"token": token,
-				"bot_prefix": bot_prefix
+				"token": input("Bot token: "),
+				"bot_prefix": input("Bot prefix: "),
+				"guild_id": input_integer("Main server ID: ", False),
+				"command_channel": input_integer("Main command channel: ", False),
+				"rating_period_start": input_integer("Rating period 0 start point (POSIX timestamp, seconds): "),
+				"rating_period_length": input_integer("Rating period length (seconds): ", False),
+				"rating_phi_increase_rate": input_integer("Rating increase rate: ", False),
+				"matchmaking_message_channel": input_integer("Matchmaking message receiving reactions's channel ID: ", False),
+				"matchmaking_message_id": input_integer("Matchmaking message receiving reactions's ID: ", False),
+				"matchmaking_announcement_channel": input_integer("Matchmaking announcement channel ID: ", False),
+				"matchmaking_platforms": [
+					["pc", 0, input_integer("PC matchmaking emoji ID: ", False)],
+					["switch", 1, input_integer("Switch matchmaking emoji ID: ", False)],
+					["ps4", 2, input_integer("PlayStation 4 matchmaking emoji ID: ", False)]
+				],
+				"pending_match_lifetime": input_integer("Time limit to finish a match (seconds): "),
+				"rank_roles": {
+					"bronze": input_integer("Bronze rank role ID: ", False),
+					"silver": input_integer("Silver rank role ID: ", False),
+					"gold": input_integer("Gold rank role ID: ", False),
+					"platinum": input_integer("Platinum rank role ID: ", False),
+					"diamond": input_integer("Diamond rank role ID: ", False),
+					"legend": input_integer("Legend rank role ID: ", False),
+					"placements": input_integer("Placements rank role ID: ", False)
+				}
 			}
-			json.dump(data, file_obj)
+			json.dump(data, file_obj, indent='\t')
