@@ -14,7 +14,6 @@ config.create_config()
 
 import discord
 from discord.ext import commands
-import asyncio
 from core import scheduled_rating_update
 from core import utils
 from core.match_manager import matchfinder, match_manager
@@ -41,7 +40,7 @@ async def on_ready():
 	scheduled_rating_update.setup()
 	await matchfinder.setup()
 	match_manager.setup()
-	asyncio.create_task(database.backup())
+	database.setup_backup()
 
 @bot.check
 async def command_check(ctx):

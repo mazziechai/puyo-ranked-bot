@@ -34,6 +34,14 @@ def row_factory(cursor, row):
 database = sqlite3.connect("../data.db3", detect_types=sqlite3.PARSE_DECLTYPES)
 database.row_factory = row_factory
 
+backup_running = False
+
+def setup_backup():
+	global backup_running
+	if backup_running: return
+	asyncio.create_task(backup())
+	backup_running = True
+
 async def backup():
 	interval = get_config("backup_interval")
 	while True:
