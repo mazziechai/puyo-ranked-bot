@@ -1,5 +1,6 @@
 import sqlite3, datetime, asyncio
 from config import get_config
+from core import utils
 
 sqlite3.register_converter(
 	"DATETIME",
@@ -45,7 +46,10 @@ def setup_backup():
 async def backup():
 	interval = get_config("backup_interval")
 	while True:
-		destination = sqlite3.connect("../data_backup.db3")
-		database.backup(destination)
-		destination.close()
-		await asyncio.sleep(interval)
+		try:
+			destination = sqlite3.connect("../data_backup.db3")
+			database.backup(destination)
+			destination.close()
+			await asyncio.sleep(interval)
+		except Exception as e:
+			utils.log_error(e)

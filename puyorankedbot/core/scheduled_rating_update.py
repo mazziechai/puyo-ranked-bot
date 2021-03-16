@@ -72,9 +72,12 @@ async def update_loop():
 
 	next_update = start + (period+1)*length
 	while True:
-		await asyncio.sleep(next_update - int(datetime.now().timestamp()))
-		await update_ratings(c)
-		period += 1
-		period_info["period"] = period
-		save_period_info(period_info)
-		next_update += length
+		try:
+			await asyncio.sleep(next_update - int(datetime.now().timestamp()))
+			await update_ratings(c)
+			period += 1
+			period_info["period"] = period
+			save_period_info(period_info)
+			next_update += length
+		except Exception as e:
+			utils.log_error(e)
