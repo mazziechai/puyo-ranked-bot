@@ -17,7 +17,7 @@ from discord.ext import commands
 from core import scheduled_rating_update
 from core import utils
 from core.match_manager import matchfinder, match_manager
-
+from core import database
 
 token = config.get_config("token")
 bot = commands.Bot(command_prefix=config.get_config("bot_prefix"))
@@ -40,6 +40,7 @@ async def on_ready():
 	scheduled_rating_update.setup()
 	await matchfinder.setup()
 	match_manager.setup()
+	database.setup_backup()
 
 @bot.check
 async def command_check(ctx):

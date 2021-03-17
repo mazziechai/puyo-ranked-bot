@@ -1,4 +1,6 @@
-import sqlite3, datetime
+import sqlite3, datetime, asyncio
+from config import get_config
+from core import utils
 
 sqlite3.register_converter(
 	"DATETIME",
@@ -32,3 +34,22 @@ def row_factory(cursor, row):
 
 database = sqlite3.connect("../data.db3", detect_types=sqlite3.PARSE_DECLTYPES)
 database.row_factory = row_factory
+
+backup_running = False
+
+def setup_backup():
+	global backup_running
+	if backup_running: return
+	asyncio.create_task(backup())
+	backup_running = True
+
+async def backup():
+	interval = get_config("backup_interval")
+	while True:
+		try:
+			destination = sqlite3.connect("../data_backup.db3")
+			database.backup(destination)
+			destination.close()
+			await asyncio.sleep(interval)
+		except Exception as e:
+			utils.log_error(e)

@@ -23,10 +23,12 @@ def parse_integer(s, mustNotBeNegative=False):
 	except Exception:
 		raise Exception(f"`{s}` is not a natural number.")
 
+def log_error(error):
+	logger.error(''.join(traceback.format_exception(None, error, error.__traceback__)))
 
 async def handle_command_error(ctx, error):
 	await ctx.send("An error occured while executing the command.")
-	logger.error(''.join(traceback.format_exception(None, error, error.__traceback__)))
+	log_error(error)
 
 
 platform_names = ["PC", "Switch", "PS4"]

@@ -83,6 +83,7 @@ def create_config():
 					"diamond": input_integer("Diamond rank role ID: ", False),
 					"legend": input_integer("Legend rank role ID: ", False),
 					"placements": input_integer("Placements rank role ID: ", False)
-				}
+				},
+				"backup_interval": input_integer("Database backup interval (seconds): ", False)
 			}
 			json.dump(data, file_obj, indent='\t')

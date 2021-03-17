@@ -306,17 +306,17 @@ class MatchManager:
 		self.message_map[match.message_id] = match
 	
 	async def cleanup_for_match(self, match):
-		await (
-			await self.announcement_channel.fetch_message(match.message_id)
-		).clear_reactions()
-		self.message_map.pop(match.message_id)
-		self.player_map.pop(match.player1)
-		self.player_map.pop(match.player2)
 		database.execute(
 			"DELETE FROM pending_matches WHERE message_id = ?",
 			(match.message_id,)
 		)
 		database.commit()
+		self.message_map.pop(match.message_id)
+		self.player_map.pop(match.player1)
+		self.player_map.pop(match.player2)
+		await (
+			await self.announcement_channel.fetch_message(match.message_id)
+		).clear_reactions()
 
 	async def get_confirmation_sides(self, message_id, player1, player2):
 		result = 0
@@ -462,22 +462,25 @@ class MatchManager:
 
 	async def clear_matches(self):
 		while True:
-			time = datetime.now().timestamp()
-			while len(self.pending_matches) != 0:
-				match = self.pending_matches[0]
-				if time - match.timestamp >= self.match_lifetime:
-					await self.process_match_timeout(match)
-					self.pending_matches.pop(0)
-				else:
-					break
-			while len(self.confirming_matches) != 0:
-				match = self.confirming_matches[0]
-				if time - match.confirming_timestamp >= 180:
-					await self.process_match_complete(match)
-					self.confirming_matches.pop(0)
-				else:
-					break
-			await asyncio.sleep(self.clear_interval)
+			try:
+				time = datetime.now().timestamp()
+				while len(self.pending_matches) != 0:
+					match = self.pending_matches[0]
+					if time - match.timestamp >= self.match_lifetime:
+						await self.process_match_timeout(match)
+						self.pending_matches.pop(0)
+					else:
+						break
+				while len(self.confirming_matches) != 0:
+					match = self.confirming_matches[0]
+					if time - match.confirming_timestamp >= 180:
+						await self.process_match_complete(match)
+						self.confirming_matches.pop(0)
+					else:
+						break
+				await asyncio.sleep(self.clear_interval)
+			except Exception as e:
+				utils.log_error(e)
 
 async def remove_reaction(message, emoji, user):
 	"""

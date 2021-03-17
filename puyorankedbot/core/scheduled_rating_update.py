@@ -19,17 +19,18 @@ def setup():
 	running = True
 
 async def update_ratings(c):
-	feed_in = database.execute("SELECT rowid, id, rating_mu, rating_phi FROM players")
+	feed_in = database.execute("SELECT rowid, id, platforms, rating_mu, rating_phi FROM players")
 	feed_out = database.cursor()
 	while True:
 		batch = feed_in.fetchmany(1024)
 		if len(batch) == 0: break
 		data_load = []
 		for player in batch:
-			mu = player[2]
-			old_phi = player[3]
+			mu = player[3]
+			old_phi = player[4]
 			new_phi = min(350, (old_phi**2 + c)**0.5)
-			await utils.update_role(player[1], mu, old_phi, mu, new_phi)
+			if player[2] != "":
+				await utils.update_role(player[1], mu, old_phi, mu, new_phi)
 			data_load.append((new_phi, player[0]))
 		feed_out.executemany(
 			"UPDATE players SET rating_phi = ? WHERE rowid = ?",
@@ -71,9 +72,12 @@ async def update_loop():
 
 	next_update = start + (period+1)*length
 	while True:
-		await asyncio.sleep(next_update - int(datetime.now().timestamp()))
-		await update_ratings(c)
-		period += 1
-		period_info["period"] = period
-		save_period_info(period_info)
-		next_update += length
+		try:
+			await asyncio.sleep(next_update - int(datetime.now().timestamp()))
+			await update_ratings(c)
+			period += 1
+			period_info["period"] = period
+			save_period_info(period_info)
+			next_update += length
+		except Exception as e:
+			utils.log_error(e)

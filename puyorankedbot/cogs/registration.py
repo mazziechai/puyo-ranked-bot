@@ -18,7 +18,7 @@ class Registration(commands.Cog):
 		platforms = []
 		for name in platforms_raw:
 			name = name.casefold()
-			if name in utils.platform_name_mapping:
+			if name in utils.platform_name_mapping and name not in platforms:
 				platforms.append(name)
 		return platforms
 
