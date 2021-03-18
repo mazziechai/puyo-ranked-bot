@@ -63,6 +63,7 @@ class Update(commands.Cog):
 			await ctx.send(
 				"You need to provide a valid platform that is one of the following: "
 				+ ", ".join(utils.platform_names)
+				+ "."
 			)
 			return
 		name = " ".join(name).strip()
@@ -79,7 +80,7 @@ class Update(commands.Cog):
 		if name == "":
 			database.execute(f"UPDATE players SET username_{platform} = NULL WHERE id = ?", (ctx.author.id,))
 			database.commit()
-			await ctx.send("Cleared username for {utils.format_platform_name(platform)}.")
+			await ctx.send(f"Cleared username for {utils.format_platform_name(platform)}.")
 		else:
 			if database.execute(
 				f"SELECT EXISTS (SELECT 1 FROM players WHERE username_{platform} = ?)",

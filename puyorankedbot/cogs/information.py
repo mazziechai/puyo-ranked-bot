@@ -165,6 +165,7 @@ class Information(commands.Cog):
 			await ctx.send(
 				"You need to provide a valid platform that is one of the following: "
 				+ ", ".join(utils.platform_names)
+				+ "."
 			)
 			return
 
