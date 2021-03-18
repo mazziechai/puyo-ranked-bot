@@ -22,7 +22,7 @@ class Leaderboard(commands.Cog):
 		players = database.execute(
 			"SELECT id, display_name, rating_mu, rating_phi "
 			"FROM players WHERE platforms <> '' AND rating_phi < 150 "
-			"ORDER BY rating_mu DESC, rating_phi DESC LIMIT 10"
+			"ORDER BY rating_mu DESC, rating_phi ASC LIMIT 10"
 		).fetchall()
 		if len(players) == 0:
 			await ctx.send("There are no players with ranks at the moment, so no leaders to display.")
