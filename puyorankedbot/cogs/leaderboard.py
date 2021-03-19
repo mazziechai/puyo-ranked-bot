@@ -1,4 +1,3 @@
-import discord
 from discord.ext import commands
 
 from core import utils
@@ -35,7 +34,8 @@ class Leaderboard(commands.Cog):
 			message += (
 				"\n" + str(index) + ". " +
 				utils.escape_markdown(await self.get_player_name(player)) +
-				" | " + str(int(player["rating_mu"])) + " \u00B1 " + str(int(2 * player["rating_phi"]))
+				" | " + str(int(player["rating_mu"])) + " \u00B1 " + str(int(2 * player["rating_phi"])) +
+				" | " + utils.get_rank(player["rating_mu"]).name
 			)
 		await ctx.send(message)
 
