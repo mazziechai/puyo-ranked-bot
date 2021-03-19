@@ -62,7 +62,7 @@ ranks = [
 	Rank("Legend", 0xFF6060, 5)
 ]
 rank_null = Rank("Placements", 0x9D9D9D, -1)
-rank_threshold_mapping = [500, 1000, 1500, 2000, 2500]
+rank_threshold_mapping = [800, 1200, 1600, 1800, 2000, 2200]
 match_goals = [5, 7, 9, 11, 13, 15]
 
 def get_rank(mu, phi=0):
