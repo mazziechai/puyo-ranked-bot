@@ -54,13 +54,29 @@ class Information(commands.Cog):
 		# Why double the phi? Because phi is just half of the distance to the boundary of the 95% confidence
 		# interval. Source: https://www.glicko.net/glicko/glicko2.pdf (lines 7 to 11).
 		embed.add_field(name="Rank", value=rank.name)
-		embed.add_field(
-			name="Matches",
-			value=database.execute(
-				"SELECT COUNT(*) FROM matches WHERE player1=:id OR player2=:id",
-				{"id": player["id"]}
-			).fetchone()[0]
-		)
+		if player["rating_phi"] < 150:
+			embed.add_field(
+				name="Position",
+				value="#" + str(database.execute(
+					"SELECT COUNT(*) FROM players WHERE "
+					"platforms <> '' AND rating_phi < 150 AND "
+					"(rating_mu > :mu OR rating_mu = :mu AND rating_phi < :phi)",
+					{"mu": player["rating_mu"], "phi": player["rating_phi"]}
+				).fetchone()[0] + 1)
+			)
+		matches, wins = database.execute(
+			"SELECT COUNT(*), "
+			"COUNT("
+				"CASE WHEN (player1 = :id) == (player1_score > player2_score) "
+				"THEN 1 ELSE NULL END"
+			") FROM matches WHERE player1=:id OR player2=:id",
+			{"id": player["id"]}
+		).fetchone().tuple
+		embed.add_field(name="Matches", value=str(matches))
+		if matches != 0:
+			ratio = wins * 10000 // matches
+			decimal = ratio % 100
+			embed.add_field(name="Wins", value=f"{wins} ({ratio // 100}.{'0' if decimal < 10 else ''}{decimal}%)")
 		await ctx.send(embed=embed)
 
 	# Groupings, these don't do anything on their own.
