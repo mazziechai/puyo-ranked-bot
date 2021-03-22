@@ -47,7 +47,7 @@ async def update_loop():
 	start = get_config("rating_period_start")
 	length = get_config("rating_period_length")
 	c = get_config("rating_phi_increase_rate")
-	period = (int(datetime.now().timestamp()) - start) // length
+	period = (int(datetime.utcnow().timestamp()) - start) // length
 
 	if os.path.exists(file_name):
 		with open(file_name) as f: period_info = json.load(f)
@@ -73,7 +73,7 @@ async def update_loop():
 	next_update = start + (period+1)*length
 	while True:
 		try:
-			await asyncio.sleep(next_update - int(datetime.now().timestamp()))
+			await asyncio.sleep(next_update - int(datetime.utcnow().timestamp()))
 			await update_ratings(c)
 			period += 1
 			period_info["period"] = period
