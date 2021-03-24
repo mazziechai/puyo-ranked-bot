@@ -488,8 +488,8 @@ async def remove_reaction(message, emoji, user):
 	"""
 	try:
 		await message.remove_reaction(emoji, user)
-	except:
-		pass
+	except Exception as error:
+		utils.log_error(error)
 
 matchfinder = Matchfinder()
 match_manager = MatchManager()
