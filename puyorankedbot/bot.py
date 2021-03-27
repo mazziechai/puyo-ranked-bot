@@ -17,11 +17,14 @@ from discord.ext import commands
 from core import scheduled_rating_update
 from core import utils
 from core.match_manager import matchfinder, match_manager
+from core.help import CustomHelpCommand
 from core import database
 
 token = config.get_config("token")
-bot = commands.Bot(command_prefix=config.get_config("bot_prefix"))
-bot.help_command = commands.DefaultHelpCommand(width=256)
+bot = commands.Bot(
+	command_prefix=config.get_config("bot_prefix"),
+	help_command = CustomHelpCommand()
+)
 
 utils.bot = bot
 command_channel_id = config.get_config("command_channel")
