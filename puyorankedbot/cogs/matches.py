@@ -47,6 +47,7 @@ class Matches(commands.Cog):
 			return
 		if score1 == score2:
 			await ctx.send("The scores are equal. There's gotta be a winner.")
+			return
 
 		data = match_manager.player_map[ctx.author.id]
 		match = data[0]
