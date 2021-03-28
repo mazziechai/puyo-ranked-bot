@@ -6,6 +6,10 @@ from core.database import database
 class Leaderboard(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
+		self.help = (
+			"You can view the top ten Puyo players in the server's ranked "
+			"system by using `{0}leaderboard`."
+		)
 
 	async def get_player_name(self, player_row):
 		if player_row["display_name"] is not None:
@@ -15,7 +19,7 @@ class Leaderboard(commands.Cog):
 	
 	@commands.command(
 		name="leaderboard",
-		help="See the current top players in the system."
+		help="`{0}leaderboard`\nSee the current top players in the system."
 	)
 	async def leaderboard(self, ctx):
 		players = database.execute(

@@ -12,6 +12,14 @@ class Information(commands.Cog):
 
 	def __init__(self, bot):
 		self.bot = bot
+		self.help = (
+			"You can retrieve information from the ranked system about:\n"
+			"– A player: the player can be found using one of the following ways:\n"
+			"+ `{0}info player user <ping or ID>`\n"
+			"+ `{0}info player displayname <display name>`\n"
+			"+ `{0}info player username <platform> <username>`\n"
+			"– A match: use `{0}info match <match ID>`."
+		)
 
 	@classmethod
 	async def send_player_info(cls, ctx, player, user=None):
@@ -92,7 +100,15 @@ class Information(commands.Cog):
 		await utils.handle_command_error(ctx, error)
 
 	# info player
-	@info.group(name="player", help="Retrieve information about a Puyo player.")
+	@info.group(
+		name="player",
+		help=(
+			"Retrieve information about a Puyo player using one of the following:\n"
+			"– `{0}info player user <ping or ID>`\n"
+			"– `{0}info player displayname <display name>`\n"
+			"– `{0}info player username <platform> <username>`\n"
+		)
+	)
 	async def info_player(self, ctx):
 		if ctx.invoked_subcommand is None:
 			await ctx.send_help(self.info_player)
@@ -100,7 +116,10 @@ class Information(commands.Cog):
 	@info_player.command(
 		name="user",
 		usage="<mention or ID>",
-		help="Retrieve information about a Puyo player using their Discord user."
+		help=(
+			"`{0}info player user <mention or ID>`\n"
+			"Retrieve information about a Puyo player using their Discord user."
+		)
 	)
 	async def info_player_user(self, ctx, user: discord.User):
 		"""
@@ -133,7 +152,10 @@ class Information(commands.Cog):
 	@info_player.command(
 		name="name",
 		usage="<display name>",
-		help="Retrieve information about a Puyo player based on their display name."
+		help=(
+			"`{0}info player name <display name>`\n"
+			"Retrieve information about a Puyo player based on their display name."
+		)
 	)
 	async def info_player_name(self, ctx, *name):
 		"""
@@ -168,7 +190,10 @@ class Information(commands.Cog):
 	@info_player.command(
 		name="username",
 		usage="<platform> <username>",
-		help="Retrieve information about a Puyo player based on their username on a platform."
+		help=(
+			"`{0}info player username <username>`\n"
+			"Retrieve information about a Puyo player based on their username on a platform."
+		)
 	)
 	async def info_player_username(self, ctx, platform, *username):
 		username = " ".join(username).strip()
@@ -234,7 +259,7 @@ class Information(commands.Cog):
 	@info.command(
 		name="match",
 		usage="<ID>",
-		help="Retrieve information about a match."
+		help="`{0}info match <match ID>`\nRetrieve information about a match."
 	)
 	async def info_match(self, ctx, ids):
 		try:

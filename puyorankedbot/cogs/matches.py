@@ -14,10 +14,23 @@ class Matches(commands.Cog):
 
 	def __init__(self, bot):
 		self.bot = bot
+		self.help = (
+			"Report your current match's results to the system using "
+			"`{0}match report <your score> <opponent score>`.\n"
+			"If you can't play your current match for a reason, you can "
+			"request a `{0}match cancel`.\n"
+			"You can view information of a past match using "
+			"`{0}info match <match ID>`."
+		)
 
 	@commands.group(
 		name="match",
-		help="Match related commands."
+		help=(
+			"Report your current match's results to the system using "
+			"`{0}match report <your score> <opponent score>`.\n"
+			"If you can't play your current match for a reason, you can "
+			"request a `{0}match cancel`."
+		)
 	)
 	async def match(self, ctx):
 		if ctx.invoked_subcommand is None:
@@ -32,7 +45,10 @@ class Matches(commands.Cog):
 	@match.command(
 		name="report",
 		usage="<your score> <opponent score>",
-		help="Report your current match's result to the system."
+		help=(
+			"`{0}match report <your score> <opponent score>`\n"
+			"Report your current match's result to the system."
+		)
 	)
 	async def match_report(self, ctx, score1s, score2s):
 		if ctx.author.id not in match_manager.player_map:
@@ -47,6 +63,7 @@ class Matches(commands.Cog):
 			return
 		if score1 == score2:
 			await ctx.send("The scores are equal. There's gotta be a winner.")
+			return
 
 		data = match_manager.player_map[ctx.author.id]
 		match = data[0]
@@ -116,7 +133,7 @@ class Matches(commands.Cog):
 	
 	@match.command(
 		name="cancel",
-		help="Request cancelling the current match."
+		help="`{0}match cancel`\nRequest cancelling the current match."
 	)
 	async def match_cancel(self, ctx):
 		if ctx.author.id not in match_manager.player_map:

@@ -11,8 +11,22 @@ class Update(commands.Cog):
 
 	def __init__(self, bot):
 		self.bot = bot
+		self.help = (
+			"`{0}update displayname <display name>` sets your name that is "
+			"displayed in the bot's output.\n"
+			"`{0}update username <platform> <username>` sets your username on "
+			"a platform so that players can find each other easier.\n"
+		)
 
-	@commands.group(name="update", help="Update your information.")
+	@commands.group(
+		name="update",
+		help=(
+			"`{0}update displayname <display name>` sets your name that is "
+			"displayed in the bot's output.\n"
+			"`{0}update username <platform> <username>` sets your username on "
+			"a platform so that players can find each other easier.\n"
+		)
+	)
 	async def update(self, ctx):
 		if ctx.invoked_subcommand is None:
 			await ctx.send_help(self.update)
@@ -26,7 +40,10 @@ class Update(commands.Cog):
 	@update.command(
 		name="displayname",
 		usage="[display name]",
-		help="Set, change or clear your display name."
+		help=(
+			"`{0}update displayname [display name]`\n"
+			"Set, change or clear your display name."
+		)
 	)
 	async def update_displayname(self, ctx, *name):
 		name = " ".join(name).strip()
@@ -55,7 +72,11 @@ class Update(commands.Cog):
 	@update.command(
 		name="username",
 		usage="<platform> [username]",
-		help="Set, change or clear your username on a platform."
+		help=(
+			"`{0}update username <platform> [username]`\n"
+			"Set, change or clear your username on a platform."
+			"The platform should be one of PC, Switch, PS4."
+		)
 	)
 	async def update_username(self, ctx, platform, *name):
 		platform = platform.casefold()

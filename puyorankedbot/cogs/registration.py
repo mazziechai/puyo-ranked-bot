@@ -12,6 +12,17 @@ class Registration(commands.Cog):
 
 	def __init__(self, bot):
 		self.bot = bot
+		self.help = (
+			"You can register yourself to the system or add new platforms "
+			"using `{0}register <platforms>` where each platform is one of "
+			"PC, Switch, PS4, separated by spaces.\n"
+			"You can remove yourself from a number of platforms using "
+			"`{0}unregister <platforms>`.\n"
+			"If you wish to unregister from all platforms and be no longer "
+			"in the system, you can use `{0}unregister all`.\n"
+			"You can choose to register again at a later time, and when you "
+			"do so all your stats will be kept."
+		)
 
 	@classmethod
 	def sanitize_platforms(cls, platforms_raw):
@@ -25,7 +36,11 @@ class Registration(commands.Cog):
 	@commands.command(
 		name="register",
 		usage="<platforms>",
-		help="Register yourself into the system."
+		help=(
+			"`{0}register <platforms>`\n"
+			"Register yourself into the system. Each platform should be one "
+			"of PC, Switch, PS4 and separated by spaces."
+		)
 	)
 	async def register(self, ctx, *platforms_raw):
 		platforms = self.sanitize_platforms(platforms_raw)
@@ -84,7 +99,13 @@ class Registration(commands.Cog):
 	@commands.command(
 		name="unregister",
 		usage="<platforms>",
-		help="Unregister yourself from the system."
+		help=(
+			"`{0}unregister <platforms>`\n"
+			"Unregister yourself into the system. Each platform should be one "
+			"of PC, Switch, PS4 and separated by spaces.\n"
+			"`{0}unregister all` to completely remove yourself from "
+			"the system, on all platforms."
+		)
 	)
 	async def unregister(self, ctx, *platforms_raw):
 		if ctx.author.id in matchfinder.player_map:
