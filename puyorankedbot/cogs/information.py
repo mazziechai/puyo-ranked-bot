@@ -16,7 +16,7 @@ class Information(commands.Cog):
 			"You can retrieve information from the ranked system about:\n"
 			"– A player: the player can be found using one of the following ways:\n"
 			"+ `{0}info player user <ping or ID>`\n"
-			"+ `{0}info player displayname <display name>`\n"
+			"+ `{0}info player name <display name>`\n"
 			"+ `{0}info player username <platform> <username>`\n"
 			"– A match: use `{0}info match <match ID>`."
 		)
@@ -88,7 +88,17 @@ class Information(commands.Cog):
 		await ctx.send(embed=embed)
 
 	# Groupings, these don't do anything on their own.
-	@commands.group(name="info", help="Retrieve information about players and matches.")
+	@commands.group(
+		name="info",
+		help=(
+			"You can retrieve information from the ranked system about:\n"
+			"– A player: the player can be found using one of the following ways:\n"
+			"+ `{0}info player user <ping or ID>`\n"
+			"+ `{0}info player name <display name>`\n"
+			"+ `{0}info player username <platform> <username>`\n"
+			"– A match: use `{0}info match <match ID>`."
+		)
+	)
 	async def info(self, ctx):
 		if ctx.invoked_subcommand is None:
 			await ctx.send_help(self.info)
