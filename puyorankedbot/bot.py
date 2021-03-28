@@ -21,9 +21,14 @@ from core.help import CustomHelpCommand
 from core import database
 
 token = config.get_config("token")
+prefix = config.get_config("bot_prefix")
 bot = commands.Bot(
-	command_prefix=config.get_config("bot_prefix"),
-	help_command = CustomHelpCommand()
+	command_prefix=prefix,
+	help_command=CustomHelpCommand(),
+	activity=discord.Activity(
+		type=discord.ActivityType.listening,
+		name=f"{prefix}help"
+	)
 )
 
 utils.bot = bot
