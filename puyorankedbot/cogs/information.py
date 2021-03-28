@@ -115,7 +115,7 @@ class Information(commands.Cog):
 		help=(
 			"Retrieve information about a Puyo player using one of the following:\n"
 			"– `{0}info player user <ping or ID>`\n"
-			"– `{0}info player displayname <display name>`\n"
+			"– `{0}info player name <display name>`\n"
 			"– `{0}info player username <platform> <username>`\n"
 		)
 	)
